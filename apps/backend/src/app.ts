@@ -29,12 +29,12 @@ app.get(
 
 app.use("/ui", swaggerUI({ url: "/api/openapi" }));
 
-app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
+app.on(["POST", "GET"], "/auth/**", (c) => auth.handler(c.req.raw));
 
 app.use(
 	"*",
 	cors({
-		origin: "http://localhost:5173", // replace with your origin
+		origin: "http://localhost:5173",
 		allowHeaders: ["Content-Type", "Authorization"],
 		allowMethods: ["POST", "GET", "OPTIONS"],
 		exposeHeaders: ["Content-Length"],
