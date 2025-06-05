@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit --preserveWatchOutput"
   },
   "devDependencies": {
+    "@better-auth/cli": "^1.2.8",
     "@types/pg": "^8.11.12",
     "drizzle-kit": "0.30.6",
     "tsc-alias": "^1.8.16",
