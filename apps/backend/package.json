@@ -1,0 +1,48 @@
+{
+  "name": "@webdev-project/backend",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./routes": "./src/routes/index.ts",
+    "./schema": "./src/db/types.ts"
+  },
+  "scripts": {
+    "build": "rm -rf dist .tsbuildinfo && tsc --preserveWatchOutput && tsc-alias",
+    "start": "node dist/index.js",
+    "dev": "rm -rf dist .tsbuildinfo && tsc --preserveWatchOutput && tsc-alias && concurrently -p \"[{name}]\" -n \"tsc ,node,tals\" -c \"bgBlue.bold,bgGreen.bold,bgBlueBright\" \"npx tsc --preserveWatchOutput --watch\" \"node --watch --watch-preserve-output dist\" \"npx tsc-alias -w\"",
+    "db:push": "drizzle-kit push --config=./src/db/drizzle.config.ts",
+    "db:pull": "drizzle-kit pull --config=./src/db/drizzle.config.ts",
+    "db:generate": "drizzle-kit generate --config=./src/db/drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --host localhost --port 3002 --verbose --config=./src/db/drizzle.config.ts",
+    "typecheck": "tsc --noEmit --preserveWatchOutput"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^22.15.3",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.12",
+    "drizzle-kit": "0.30.6",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.16.0",
+    "@hono/node-server": "^1.14.0",
+    "@hono/swagger-ui": "^0.5.1",
+    "@hono/zod-openapi": "^0.19.6",
+    "@hono/zod-validator": "^0.5.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.43.1",
+    "drizzle-zod": "^0.7.0",
+    "hono": "^4.7.9",
+    "hono-openapi": "^0.4.8",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^7.0.2",
+    "pg": "^8.14.1",
+    "winston": "^3.17.0",
+    "zod": "^3.24.4",
+    "zod-openapi": "^4.2.4"
+  }
+}

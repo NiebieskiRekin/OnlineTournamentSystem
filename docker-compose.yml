@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - 127.0.0.1:666:5432
+    volumes:
+      - pg_data_products_listing:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: łakalaka666
+
+
+volumes:
+  pg_data_products_listing:

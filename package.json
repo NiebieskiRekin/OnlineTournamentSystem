@@ -1,30 +1,42 @@
 {
   "name": "webdev-project",
-  "private": true,
-  "type": "module",
+  "workspaces": [
+    "apps/backend",
+    "packages/api-client",
+    "apps/frontend"
+  ],
+  "version": "0.1.0",
   "scripts": {
-    "build": "react-router build",
-    "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "dev": "concurrently -p \"[{name}]\" -n \"b,f,a\" -c \"bgGray.bold,bgCyan.bold,bgMagenta.bold\" \"npm --prefix apps/backend run dev\" \"npm --prefix apps/frontend run dev\" \"npm --prefix packages/api-client run dev\"",
+    "build": "npm --prefix apps/backend run build && npm --prefix packages/api-client run build && npm --prefix apps/frontend run build",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix",
+    "format": "npx prettier . -w",
+    "typecheck": "npm --prefix apps/backend run typecheck && npm --prefix packages/api-client run typecheck && npm --prefix apps/frontend run typecheck",
+    "prepare": "node .husky/install.mjs"
   },
-  "dependencies": {
-    "@react-router/node": "^7.5.3",
-    "@react-router/serve": "^7.5.3",
-    "isbot": "^5.1.27",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router": "^7.5.3"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NiebieskiRekin/OnlineTournamentSystem.git"
   },
   "devDependencies": {
-    "@react-router/dev": "^7.5.3",
-    "@tailwindcss/vite": "^4.1.4",
-    "@types/node": "^20",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "tailwindcss": "^4.1.4",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.3",
-    "vite-tsconfig-paths": "^5.1.4"
+    "@eslint/compat": "^1.2.7",
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.15.3",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-drizzle": "^0.2.3",
+    "eslint-plugin-prettier": "^5.2.6",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^16.0.0",
+    "husky": "^9.0.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "typescript-eslint": "^8.24.0"
   }
 }
