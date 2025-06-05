@@ -75,7 +75,13 @@ export default function SignIn() {
       }
       await authClient.signIn.email({
         email: data.email, password: data.password
-      });
+      },
+      {
+        onError: (ctx) => {
+          alert(ctx.error.message);
+        },
+      }
+    );
     }
 
   const validateInputs = () => {
