@@ -16,7 +16,8 @@ export const auth = betterAuth({
         sendResetPassword: async ({user, url, token}) => {
             logger.info('Password reset email '+token)
             await sendResetPasswordEmail(user.email, user.name, url);
-        }
+        },
+        resetPasswordTokenExpiresIn: 24*60*60,
     },
     trustedOrigins: [
         'http://localhost:5173', 'http://localhost:3000'
@@ -26,6 +27,9 @@ export const auth = betterAuth({
           logger.info('Send verification email '+token)
           await sendAccountConfirmationEmail(user.email, user.name, url);
         },
+        expiresIn: 24*60*60,
+        autoSignInAfterVerification: true,
+        sendOnSignUp: true,
     },
 });
 

@@ -40,8 +40,8 @@ export default function SignUp() {
         return;
       }
       await authClient.signUp.email({
-        email: data.email, password: data.password, name: data.name
-      });
+        email: data.email, password: data.password, name: data.name, callbackURL: "http://localhost:5173/login"
+    });
     }
 
   const validateInputs = () => {

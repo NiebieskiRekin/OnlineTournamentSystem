@@ -137,13 +137,13 @@ export function generateAccountConfirmationEmailTemplate(
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset Request</title>
+    <title>Account confirmation</title>
     ${commonStyles}
 </head>
 <body>
     <div class="email-container">
         <div class="email-header">
-            <h1>Password Reset Request</h1>
+            <h1>Account confirmation</h1>
         </div>
         <div class="email-content">
             <p>Hi ${name},</p>
