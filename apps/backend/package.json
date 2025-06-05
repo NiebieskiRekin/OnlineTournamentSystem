@@ -24,12 +24,15 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
+    "@hono/swagger-ui": "^0.5.1",
+    "@hono/zod-openapi": "^0.19.8",
     "@hono/zod-validator": "^0.5.0",
     "better-auth": "^1.2.8",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.9",
+    "hono-openapi": "^0.4.8",
     "pg": "^8.14.1",
     "winston": "^3.17.0",
     "zod": "^3.24.4"
