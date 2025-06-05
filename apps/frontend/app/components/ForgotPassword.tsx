@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -6,13 +8,39 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import OutlinedInput from '@mui/material/OutlinedInput';
+import { authClient } from '~/lib/auth';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 
 interface ForgotPasswordProps {
   open: boolean;
   handleClose: () => void;
 }
 
+type Inputs = {
+  email: string
+};
+
 export default function ForgotPassword({ open, handleClose }: ForgotPasswordProps) {
+
+  const {
+      register,
+      handleSubmit,
+      watch,
+      formState: { errors },
+    } = useForm<Inputs>()
+    const onSubmit: SubmitHandler<Inputs> = async (data) => {
+      await authClient.forgetPassword({
+          email: data.email,
+          redirectTo: "http://localhost:5173/reset-password",
+        },
+        {
+          onError: (ctx) => {
+            alert(ctx.error.message);
+          },
+        }
+      );
+    }
+
   return (
     <Dialog
       open={open}
@@ -20,10 +48,7 @@ export default function ForgotPassword({ open, handleClose }: ForgotPasswordProp
       slotProps={{
         paper: {
           component: 'form',
-          onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            handleClose();
-          },
+          onSubmit: handleSubmit(onSubmit),
           sx: { backgroundImage: 'none' },
         },
       }}
@@ -41,11 +66,11 @@ export default function ForgotPassword({ open, handleClose }: ForgotPasswordProp
           required
           margin="dense"
           id="email"
-          name="email"
           label="Email address"
           placeholder="Email address"
           type="email"
           fullWidth
+          {...register("email", { required: true })}
         />
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>

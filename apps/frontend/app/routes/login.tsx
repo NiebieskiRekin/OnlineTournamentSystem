@@ -3,50 +3,24 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import { styled } from '@mui/material/styles';
 import ForgotPassword from '~/components/ForgotPassword';
 import { Card } from '~/components/ui/card';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { authClient } from '~/lib/auth';
+import { LoginContainer } from '~/components/ui/login-container';
 
 
 type Inputs = {
   email: string
   password: string
 }
-
-const SignInContainer = styled(Stack)(({ theme }) => ({
-  height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
-  minHeight: '100%',
-  padding: theme.spacing(2),
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(4),
-  },
-  '&::before': {
-    content: '""',
-    display: 'block',
-    position: 'absolute',
-    zIndex: -1,
-    inset: 0,
-    backgroundImage:
-      'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
-    backgroundRepeat: 'no-repeat',
-    ...theme.applyStyles('dark', {
-      backgroundImage:
-        'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
-    }),
-  },
-}));
 
 export default function SignIn() {
   const [emailError, setEmailError] = React.useState(false);
@@ -114,7 +88,7 @@ export default function SignIn() {
   return (
     <div>
       <CssBaseline enableColorScheme />
-      <SignInContainer direction="column" justifyContent="space-between">
+      <LoginContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <Typography
             component="h1"
@@ -168,10 +142,6 @@ export default function SignIn() {
                 {...register("password", { required: true })}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
             <ForgotPassword open={open} handleClose={handleClose} />
             <Button
               type="submit"
@@ -205,7 +175,7 @@ export default function SignIn() {
             </Typography>
           </Box>
         </Card>
-      </SignInContainer>
+      </LoginContainer>
     </div>
   );
 }

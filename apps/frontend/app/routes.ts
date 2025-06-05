@@ -9,6 +9,7 @@ import {
   export default [
     index("./routes/home.tsx"),
     route("/login", "./routes/login.tsx"),
-    route("/sign-up", "./routes/sign-up.tsx")
+    route("/sign-up", "./routes/sign-up.tsx"),
+    route("/reset-password", "./routes/reset-password.tsx")
   ] satisfies RouteConfig;
   
