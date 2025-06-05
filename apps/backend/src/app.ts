@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { ProcessEnv } from "./env";
@@ -5,11 +6,10 @@ import { registerRoutes } from "./routes";
 import { log } from "./logs/logger";
 import { openAPISpecs } from "hono-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
-import { auth } from "./auth";
-import { hono } from "./hono";
+import { auth, auth_vars } from "./auth";
 import { auth_middleware } from "./middleware/auth-middleware";
 
-const app = registerRoutes(hono);
+const app = registerRoutes(new Hono<auth_vars>());
 
 app.get(
   "/openapi",

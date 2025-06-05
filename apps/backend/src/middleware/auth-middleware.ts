@@ -1,4 +1,4 @@
-import { auth_vars } from "@/backend/hono";
+import { auth_vars } from "@/backend/auth";
 import { MiddlewareHandler } from "hono";
 import { auth } from "../auth";
 
