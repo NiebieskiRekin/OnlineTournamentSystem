@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes";
 import { log } from "./logs/logger";
 import { openAPISpecs } from "hono-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
+import { auth } from "./auth";
 
 const app = registerRoutes(new Hono());
 
@@ -26,6 +27,8 @@ app.get(
 );
 
 app.use("/ui", swaggerUI({ url: "/api/openapi" }));
+
+app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
 app.use("*", cors());
 if (ProcessEnv.NODE_ENV != "production") {
