@@ -1,0 +1,21 @@
+{
+  "name": "@webdev-project/api-client",
+  "type": "module",
+  "private": true,
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsc --preserveWatchOutput --watch",
+    "build": "rm -rf dist && tsc --preserveWatchOutput",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@webdev-project/backend": "*",
+    "@types/node": "^22.15.3",
+    "hono": "^4.7.8"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3"
+  }
+}
