@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { auth_vars } from "../auth";
+import { auth_vars } from "../lib/auth";
 
 export function registerRoutes(app: Hono<auth_vars>) {
   return app

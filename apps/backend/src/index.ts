@@ -1,7 +1,7 @@
 import app from "./app";
 import { ProcessEnv } from "./env";
 import { serve } from "@hono/node-server";
-import { log } from "./logs/logger";
+import { log } from "./lib/logger";
 
 export const server = serve(
   {

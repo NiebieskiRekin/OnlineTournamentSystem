@@ -19,6 +19,9 @@ const ServeEnv = z.object({
     .default("development"),
 
   DOMAIN: z.string().default("localhost"),
+
+  EMAIL_USER: z.string().nonempty(),
+  EMAIL_PASS: z.string().nonempty()
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
