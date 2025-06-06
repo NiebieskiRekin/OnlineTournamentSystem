@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/await-thenable */
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Divider, { dividerClasses } from '@mui/material/Divider';
@@ -10,6 +12,7 @@ import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import MenuButton from './MenuButton';
+import { authClient } from '~/lib/auth';
 
 const MenuItem = styled(MuiMenuItem)({
   margin: '2px 0',
@@ -24,6 +27,17 @@ export default function OptionsMenu() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const logout = () => {
+    authClient.signOut().then(()=>{
+      setAnchorEl(null);
+      console.log("logout")
+    }
+    ).catch((e)=>{
+      setAnchorEl(null);
+      console.log(e)
+    })
+  };
+
   return (
     <React.Fragment>
       <MenuButton
@@ -60,7 +74,7 @@ export default function OptionsMenu() {
         <MenuItem onClick={handleClose}>Settings</MenuItem>
         <Divider />
         <MenuItem
-          onClick={handleClose}
+          onClick={logout}
           sx={{
             [`& .${listItemIconClasses.root}`]: {
               ml: 'auto',
