@@ -6,38 +6,52 @@ import {
   } from "drizzle-zod";
 import { discipline, match, participant, sponsor, tournament } from "./schema";
 
-export const disciplineSelectSchema = createSelectSchema(discipline);
-export type Discipline = z.infer<typeof disciplineSelectSchema>;
-export const disciplineUpdateSchema = createUpdateSchema(discipline).required({
+const disciplineSelectSchema = createSelectSchema(discipline);
+type Discipline = z.infer<typeof disciplineSelectSchema>;
+const disciplineUpdateSchema = createUpdateSchema(discipline).required({
     id: true
 });
-export const disciplineInsertSchema = createInsertSchema(discipline);
+const disciplineInsertSchema = createInsertSchema(discipline);
 
-export const sponsorSelectSchema = createSelectSchema(sponsor);
-export type Sponsor = z.infer<typeof sponsorSelectSchema>;
-export const sponsorUpdateSchema = createUpdateSchema(sponsor).required({
+const sponsorSelectSchema = createSelectSchema(sponsor);
+type Sponsor = z.infer<typeof sponsorSelectSchema>;
+const sponsorUpdateSchema = createUpdateSchema(sponsor).required({
     id: true
 });
-export const sponsorInsertSchema = createInsertSchema(sponsor);
+const sponsorInsertSchema = createInsertSchema(sponsor);
 
-export const tournamentSelectSchema = createSelectSchema(tournament);
-export type Tournament = z.infer<typeof tournamentSelectSchema>;
-export const tournamentUpdateSchema = createUpdateSchema(tournament).required({
+const tournamentSelectSchema = createSelectSchema(tournament);
+type Tournament = z.infer<typeof tournamentSelectSchema>;
+const tournamentUpdateSchema = createUpdateSchema(tournament).required({
     id: true
 });
-export const tournamentInsertSchema = createInsertSchema(tournament);
+const tournamentInsertSchema = createInsertSchema(tournament).omit({
+    createdAt: true,
+    updatedAt: true
+});
 
-export const participantSelectSchema = createSelectSchema(participant);
-export type Participant = z.infer<typeof participantSelectSchema>;
-export const participantUpdateSchema = createUpdateSchema(participant).required({
+const participantSelectSchema = createSelectSchema(participant);
+type Participant = z.infer<typeof participantSelectSchema>;
+const participantUpdateSchema = createUpdateSchema(participant).required({
     match: true,
     user: true
 });
-export const participantInsertSchema = createInsertSchema(participant);
+const participantInsertSchema = createInsertSchema(participant);
 
-export const matchSelectSchema = createSelectSchema(match);
-export type Match = z.infer<typeof matchSelectSchema>;
-export const matchUpdateSchema = createUpdateSchema(match).required({
+const matchSelectSchema = createSelectSchema(match);
+type Match = z.infer<typeof matchSelectSchema>;
+const matchUpdateSchema = createUpdateSchema(match).required({
     id: true
 });
-export const matchInsertSchema = createInsertSchema(match);
+const matchInsertSchema = createInsertSchema(match);
+
+const basicErrorSchema = z.object({ error: z.string() });
+
+export {
+    disciplineSelectSchema, disciplineUpdateSchema, disciplineInsertSchema, type Discipline,
+    sponsorSelectSchema, sponsorUpdateSchema, sponsorInsertSchema, type Sponsor,
+    tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament,
+    participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
+    matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
+    basicErrorSchema
+};

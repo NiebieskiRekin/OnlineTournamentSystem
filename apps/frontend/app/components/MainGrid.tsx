@@ -26,10 +26,10 @@ import {
   keepPreviousData,
   useQuery,
 } from '@tanstack/react-query';
-import {BackendTypes} from "@webdev-project/api-client";
+import {type Tournament} from "@webdev-project/api-client";
 
 type TournamentApiResponse = {
-  data: Array<BackendTypes.Tournament>;
+  data: Array<Tournament>;
   totalCount: number;
 };
 

@@ -62,13 +62,7 @@ export const verification = pgTable("verification", {
 
 export const discipline = pgTable("discipline", {
 	id: serial().primaryKey(),
-	name: text("name").unique(),
-	createdAt: timestamp("created_at").$defaultFn(
-		() => /* @__PURE__ */ new Date()
-	),
-	updatedAt: timestamp("updated_at").$defaultFn(
-		() => /* @__PURE__ */ new Date()
-	),
+	name: text("name").unique()
 })
 
 export const sponsor = pgTable("sponsor",{

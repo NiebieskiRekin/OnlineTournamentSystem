@@ -24,7 +24,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         .orderBy(asc(tournament.id))
         .limit(Number(limit))
         .offset(Number(offset));
-        const totalCount = await db.select({count: count()}).from(tournament)
+        const totalCount = (await db.select({count: count()}).from(tournament).then((res)=>res[0])).count
         return c.json({data: res, totalCount: totalCount}, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
@@ -50,7 +50,7 @@ export const tournamentRoute = new Hono<auth_vars>()
       }
     }
   )
-  .put(
+  .patch(
     "/",
     zValidator("json", tournamentUpdateSchema),
     async (c) => {
