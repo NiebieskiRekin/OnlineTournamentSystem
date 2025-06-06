@@ -48,6 +48,14 @@ const tournamentQueryParams = z.object({
     sorting: z.array(sorting.extend({id: tournamentColumns})).default([]),
     globalFilter: z.string()
 }).partial()
+const tournamentList = z.object({
+    data: z.array(tournamentSelectSchema),
+    meta: z.object({
+        totalCount: z.number().nonnegative(),
+        page: z.number().nonnegative(),
+        pageSize: z.number().nonnegative()
+    })
+})
 
 const participantSelectSchema = createSelectSchema(participant);
 type Participant = z.infer<typeof participantSelectSchema>;
@@ -71,7 +79,7 @@ const basicErrorSchema = z.object({ error: z.string() });
 export {
     disciplineSelectSchema, disciplineUpdateSchema, disciplineInsertSchema, type Discipline,
     sponsorSelectSchema, sponsorUpdateSchema, sponsorInsertSchema, type Sponsor,
-    tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams,
+    tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams, tournamentList,
     participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
     matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
     basicErrorSchema, sorting, 

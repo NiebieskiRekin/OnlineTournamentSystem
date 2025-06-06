@@ -4,11 +4,12 @@ import {
   tournamentInsertSchema,
 //   tournamentSelectSchema,
   tournamentUpdateSchema,
-  tournamentQueryParams
+  tournamentQueryParams,
+  tournamentList
 } from "@/backend/db/types";
 import { tournament } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
-// import { z } from "@hono/zod-openapi";
+import { z } from "@hono/zod-openapi";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
@@ -96,8 +97,9 @@ export const tournamentRoute = new Hono<auth_vars>()
             .orderBy(...orderByConditions)
             .limit(limit)
             .offset(offset);
-          
-        return c.json({data: res, meta: {totalCount: totalCount, page: page, pageSize: pageSize}}, 200);
+        
+        const response: z.infer<typeof tournamentList> = {data: res, meta: {totalCount: totalCount, page: page, pageSize: limit}}
+        return c.json(response, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }

@@ -26,8 +26,12 @@ import {
   keepPreviousData,
   useQuery,
 } from '@tanstack/react-query';
-import {type Tournament} from "@webdev-project/api-client";
+import {type Tournament, tournamentList} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
+import {z} from "zod";
+import type { ClientResponse } from 'hono/client';
+
+type TournamentList = z.infer<typeof tournamentList> 
 
 export default function MainGrid() {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
@@ -39,12 +43,13 @@ export default function MainGrid() {
   });
 
   const {
-    data = {data: [], meta: {totalCount: 0, page: 0, pageSize: 20}},
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data: { data = [], meta } = {},
     isError,
     isRefetching,
     isLoading,
     refetch,
-  } = useQuery({
+  } = useQuery<TournamentList>({
     queryKey: [
       'list-tournaments"',
       {
@@ -56,50 +61,72 @@ export default function MainGrid() {
     ],
     queryFn: async () => {
       const response = await apiClient.api.tournament.$get({
-        query
+        query: {
+          columnFilters: JSON.stringify(columnFilters) ?? [],
+          globalFilter,
+          sorting: JSON.stringify(sorting) ?? [],
+          pageIndex: pagination.pageIndex.toString(),
+          pageSize: pagination.pageSize.toString()
+        }
       });
   
       if (!response.ok){
           parseError(response)
       }
   
-      const result = await response.json();
-      return result;
+      if (response.ok){
+        const result: TournamentList = await response.json();
+        return result;
+      } else {
+        throw Error("Something went wrong");
+      }
     },
     placeholderData: keepPreviousData,
   });
 
   const columns = useMemo<MRT_ColumnDef<Tournament>[]>(
+    // id: number;
+    // name: string;
+    // discipline: number;
+    // organizer: string;
+    // createdAt: Date;
+    // updatedAt: Date;
+    // time: Date | null;
+    // latitude: number | null;
+    // longitude: number | null;
+    // placeid: string | null;
+    // maxParticipants: number;
+    // applicationDeadline: Date | null;
     () => [
       {
-        accessorKey: 'firstName',
-        header: 'First Name',
+        accessorKey: 'id',
+        header: 'ID',
       },
       {
-        accessorKey: 'lastName',
-        header: 'Last Name',
+        accessorKey: 'name',
+        header: 'Name',
       },
       {
-        accessorKey: 'address',
-        header: 'Address',
+        accessorKey: 'discipline',
+        header: 'Discipline',
       },
       {
-        accessorKey: 'state',
-        header: 'State',
+        accessorKey: 'organizer',
+        header: 'Organizer',
       },
       {
-        accessorKey: 'phoneNumber',
-        header: 'Phone Number',
+        accessorKey: 'time',
+        header: 'Time',
       },
-      {
-        accessorFn: (row) => new Date(row.lastLogin),
-        id: 'lastLogin',
-        header: 'Last Login',
-        Cell: ({ cell }) => new Date(cell.getValue<Date>()).toLocaleString(),
-        filterFn: 'greaterThan',
-        filterVariant: 'date',
-        enableGlobalFilter: false,
-      },
+      // {
+      //   accessorFn: (row) => new Date(row.lastLogin),
+      //   id: 'lastLogin',
+      //   header: 'Last Login',
+      //   Cell: ({ cell }) => new Date(cell.getValue<Date>()).toLocaleString(),
+      //   filterFn: 'greaterThan',
+      //   filterVariant: 'date',
+      //   enableGlobalFilter: false,
+      // },
     ],
     [],
     //end
@@ -107,7 +134,7 @@ export default function MainGrid() {
 
   const table = useMaterialReactTable({
     columns,
-    data,
+    data: data,
     initialState: { showColumnFilters: true },
     manualFiltering: true, //turn off built-in client-side filtering
     manualPagination: true, //turn off built-in client-side pagination
@@ -151,3 +178,7 @@ export default function MainGrid() {
     </Box>
   );
 }
+function parseError(response: ClientResponse<{ error: string; }, 500, "json">) {
+  throw new Error('Function not implemented.');
+}
+
