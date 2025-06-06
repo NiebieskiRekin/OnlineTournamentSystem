@@ -11,14 +11,18 @@ type Discipline = z.infer<typeof disciplineSelectSchema>;
 const disciplineUpdateSchema = createUpdateSchema(discipline).required({
     id: true
 });
-const disciplineInsertSchema = createInsertSchema(discipline);
+const disciplineInsertSchema = createInsertSchema(discipline).omit({
+    id: true,
+});
 
 const sponsorSelectSchema = createSelectSchema(sponsor);
 type Sponsor = z.infer<typeof sponsorSelectSchema>;
 const sponsorUpdateSchema = createUpdateSchema(sponsor).required({
+    id: true,
+});
+const sponsorInsertSchema = createInsertSchema(sponsor).omit({
     id: true
 });
-const sponsorInsertSchema = createInsertSchema(sponsor);
 
 const tournamentSelectSchema = createSelectSchema(tournament);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
@@ -26,15 +30,17 @@ const tournamentUpdateSchema = createUpdateSchema(tournament).required({
     id: true
 });
 const tournamentInsertSchema = createInsertSchema(tournament).omit({
+    id: true,
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
+    organizer: true
 });
 
 const participantSelectSchema = createSelectSchema(participant);
 type Participant = z.infer<typeof participantSelectSchema>;
 const participantUpdateSchema = createUpdateSchema(participant).required({
     match: true,
-    user: true
+    user: true,
 });
 const participantInsertSchema = createInsertSchema(participant);
 
@@ -43,7 +49,9 @@ type Match = z.infer<typeof matchSelectSchema>;
 const matchUpdateSchema = createUpdateSchema(match).required({
     id: true
 });
-const matchInsertSchema = createInsertSchema(match);
+const matchInsertSchema = createInsertSchema(match).omit({
+    id: true
+});
 
 const basicErrorSchema = z.object({ error: z.string() });
 
