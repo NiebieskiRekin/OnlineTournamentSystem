@@ -3,14 +3,21 @@ import { db} from "@/backend/db";
 import {
   tournamentInsertSchema,
 //   tournamentSelectSchema,
-  tournamentUpdateSchema
+  tournamentUpdateSchema,
+  tournamentQueryParams
 } from "@/backend/db/types";
-import { tournament } from "../db/schema";
+import { tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 // import { z } from "@hono/zod-openapi";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
-import { asc, eq, count } from "drizzle-orm";
+import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
+import { QueryBuilder } from "drizzle-orm/pg-core";
+
+function addHours(d: Date, h: number) {
+  d.setTime(d.getTime() + (h*60*60*1000));
+  return d;
+}
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
@@ -19,16 +26,82 @@ export const tournamentRoute = new Hono<auth_vars>()
     "/",
     zValidator(
       'query',
-      
+      tournamentQueryParams
     ),
     async (c) => {
       try {
-        const { limit, offset, filters, sorting } = c.req.query()
-        const res = await db.select().from(tournament)
-        .orderBy(asc(tournament.id))
-        .limit(Number(limit))
-        .offset(Number(offset));
-        const totalCount = (await db.select({count: count()}).from(tournament).then((res)=>res[0])).count
+        const queryParams = c.req.query()
+        const {pageIndex,pageSize,columnFilters,sorting,globalFilter} = tournamentQueryParams.parse(queryParams)
+        const page = pageIndex || 0
+        const limit = pageSize || 20
+        const offset = page * limit
+
+      
+        const query = db.select().from(tournament).$dynamic();
+        const whereConditions = [];
+
+        if (globalFilter){
+          const searchTerm = `%${globalFilter.toLowerCase()}%`;
+          whereConditions.push(
+              or(
+                  like(sql<string>`lower(${tournament.name})`, searchTerm),
+                  like(sql<string>`lower(${tournament.discipline})`, searchTerm),
+                  // like(sql<string>`lower(${user.name})`, searchTerm),
+              )
+          );
+        }
+
+        columnFilters?.forEach((val)=>{
+            if (val.name){
+              whereConditions.push(like(tournament.name, `%${val.name}%`))
+            }
+            if (val.discipline){
+              whereConditions.push(like(tournament.discipline, `%${val.discipline}%`))
+            }
+            if (val.time){
+              whereConditions.push(between(tournament.time, addHours(val.time, -1), addHours(val.time, 1)))
+            }
+            if (val.latitude){
+              whereConditions.push(between(tournament.latitude, val.latitude - 0.2, val.latitude + 0.2))
+            }
+            if (val.longitude){
+              whereConditions.push(between(tournament.longitude, val.longitude - 0.2, val.longitude + 0.2))
+            }
+            if (val.applicationDeadline){
+              whereConditions.push(gt(tournament.applicationDeadline, val.applicationDeadline))
+            }
+            if (val.maxParticipants){
+              whereConditions.push(gt(tournament.maxParticipants, val.maxParticipants))
+            }
+            // if (val.organizer){
+            //   whereConditions.push(like(user.name, `%${val.organizer}%`))
+            // }
+        })
+
+        let totalCountQuery = db.select({count: count()}).from(tournament).$dynamic()
+        if (whereConditions.length > 0){
+          totalCountQuery = totalCountQuery.where(and(...whereConditions));
+        }
+        const totalCount = (await totalCountQuery.then((res)=>res[0])).count;
+
+        const orderByConditions = sorting?.map(sort => {
+          const col = sql<string>`${sort.id}`;
+          return sort.desc ? desc(col) : asc(col)
+        }) ?? []
+
+        if (orderByConditions.length === 0) {
+          orderByConditions.push(asc(tournament.id));
+        }
+
+        if (whereConditions.length > 0) {
+          query.where(and(...whereConditions));
+        }
+
+        const res = await query
+            .orderBy(...orderByConditions)
+            .limit(limit)
+            .offset(offset);
+          
         return c.json({data: res, totalCount: totalCount}, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
