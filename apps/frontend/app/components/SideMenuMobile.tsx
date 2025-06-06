@@ -6,10 +6,12 @@ import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import MenuButton from './MenuButton';
 import MenuContent from './MenuContent';
-import CardAlert from './CardAlert';
+import { authClient } from '~/lib/auth';
+// import CardAlert from './CardAlert';
 
 interface SideMenuMobileProps {
   open: boolean | undefined;
@@ -17,6 +19,7 @@ interface SideMenuMobileProps {
 }
 
 export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobileProps) {
+  const { data: session } = authClient.useSession();
   return (
     <Drawer
       anchor="right"
@@ -43,12 +46,12 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
           >
             <Avatar
               sizes="small"
-              alt="Riley Carter"
-              src="/static/images/avatar/7.jpg"
+              alt={session?.user.name}
+              src={session?.user.image ?? undefined}
               sx={{ width: 24, height: 24 }}
             />
             <Typography component="p" variant="h6">
-              Riley Carter
+            {session?.user.name}
             </Typography>
           </Stack>
           <MenuButton showBadge>
@@ -60,11 +63,17 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
           <MenuContent />
           <Divider />
         </Stack>
-        <CardAlert />
+        {/* <CardAlert /> */}
         <Stack sx={{ p: 2 }}>
-          <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />}>
-            Logout
+          {(session != null) ?
+            <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />}>
+              Logout
+            </Button>
+            :
+            <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />}>
+              Login
           </Button>
+          }
         </Stack>
       </Stack>
     </Drawer>
