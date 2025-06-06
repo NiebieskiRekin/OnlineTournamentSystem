@@ -9,6 +9,7 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@webdev-project/api-client": "*",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.2.5",
@@ -29,6 +30,7 @@
     "dayjs": "^1.11.13",
     "isbot": "^5.1.27",
     "lucide-react": "^0.513.0",
+    "material-react-table": "^3.2.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.57.0",

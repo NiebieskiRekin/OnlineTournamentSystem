@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, eq } from "@/backend/db";
+import { db} from "@/backend/db";
 import {
   tournamentInsertSchema,
 //   tournamentSelectSchema,
@@ -10,7 +10,7 @@ import { auth_middleware } from "@/backend/middleware/auth-middleware";
 // import { z } from "@hono/zod-openapi";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
-import { asc } from "drizzle-orm";
+import { asc, eq, count } from "drizzle-orm";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
@@ -24,7 +24,8 @@ export const tournamentRoute = new Hono<auth_vars>()
         .orderBy(asc(tournament.id))
         .limit(Number(limit))
         .offset(Number(offset));
-        return c.json(res, 200);
+        const totalCount = await db.select({count: count()}).from(tournament)
+        return c.json({data: res, totalCount: totalCount}, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }
