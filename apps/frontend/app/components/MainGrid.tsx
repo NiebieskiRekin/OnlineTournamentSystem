@@ -28,11 +28,10 @@ import {
 } from '@tanstack/react-query';
 import {BackendTypes} from "@webdev-project/api-client";
 
-type UserApiResponse = {
+type TournamentApiResponse = {
   data: Array<BackendTypes.Tournament>;
   totalCount: number;
 };
-
 
 export default function MainGrid() {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
@@ -43,6 +42,43 @@ export default function MainGrid() {
     pageSize: 10,
   });
 
+  const {
+    data: { data = [],  } = {}, //your data and api response will probably be different
+    isError,
+    isRefetching,
+    isLoading,
+    refetch,
+  } = useQuery<TournamentApiResponse>({
+    queryKey: [
+      'users-list',
+      {
+        columnFilters, //refetch when columnFilters changes
+        globalFilter, //refetch when globalFilter changes
+        pagination, //refetch when pagination changes
+        sorting, //refetch when sorting changes
+      },
+    ],
+    queryFn: async () => {
+      const fetchURL = new URL('/api/data', location.origin);
+
+      //read our state and pass it to the API as query params
+      fetchURL.searchParams.set(
+        'start',
+        `${pagination.pageIndex * pagination.pageSize}`,
+      );
+      fetchURL.searchParams.set('size', `${pagination.pageSize}`);
+      fetchURL.searchParams.set('filters', JSON.stringify(columnFilters ?? []));
+      fetchURL.searchParams.set('globalFilter', globalFilter ?? '');
+      fetchURL.searchParams.set('sorting', JSON.stringify(sorting ?? []));
+
+      //use whatever fetch library you want, fetch, axios, etc
+      const response = await fetch(fetchURL.href);
+      const json = (await response.json()) as UserApiResponse;
+      return json;
+    },
+    placeholderData: keepPreviousData, //don't go to 0 rows when refetching or paginating to next page
+  });
+
   return (
     <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
       {/* cards */}
@@ -50,45 +86,6 @@ export default function MainGrid() {
         Upcoming tournaments
       </Typography>
       <CustomizedDataGrid />
-
-      
-
-
-      {/* <Grid
-        container
-        spacing={2}
-        columns={12}
-        sx={{ mb: (theme) => theme.spacing(2) }}
-      >
-        {data.map((card, index) => (
-          <Grid key={index} size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard {...card} />
-          </Grid>
-        ))}
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <HighlightedCard />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SessionsChart />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <PageViewsBarChart />
-        </Grid>
-      </Grid>
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Details
-      </Typography>
-      <Grid container spacing={2} columns={12}>
-        <Grid size={{ xs: 12, lg: 9 }}>
-          <CustomizedDataGrid />
-        </Grid>
-        <Grid size={{ xs: 12, lg: 3 }}>
-          <Stack gap={2} direction={{ xs: 'column', sm: 'row', lg: 'column' }}>
-            <CustomizedTreeView />
-            <ChartUserByCountry />
-          </Stack>
-        </Grid>
-      </Grid> */}
     </Box>
   );
 }

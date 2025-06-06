@@ -9,7 +9,6 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@webdev-project/api-client": "*",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.2.5",
@@ -24,6 +23,8 @@
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
     "@react-spring/web": "^10.0.1",
+    "@tanstack/react-query-devtools": "^5.80.6",
+    "@webdev-project/api-client": "*",
     "better-auth": "^1.2.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

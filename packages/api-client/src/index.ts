@@ -8,8 +8,8 @@ import { hc } from "hono/client";
 export const client = hc<ApiRoutes>("");
 export type apiClient = typeof client;
 
-// export default (...args: Parameters<typeof hc>): apiClient =>
-//   hc<ApiRoutes>(...args);
+export default (...args: Parameters<typeof hc>): apiClient =>
+  hc<ApiRoutes>(...args);
 
 export type ErrorSchema = {
   error: {
