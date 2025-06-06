@@ -12,11 +12,7 @@ import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
-
-function addHours(d: Date, h: number) {
-  d.setTime(d.getTime() + (h*60*60*1000));
-  return d;
-}
+import { addHours } from "../lib/date-utils";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
