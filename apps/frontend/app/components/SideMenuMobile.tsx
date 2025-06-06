@@ -72,7 +72,7 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
             :
             <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />}>
               Login
-          </Button>
+            </Button>
           }
         </Stack>
       </Stack>

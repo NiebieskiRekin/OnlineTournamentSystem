@@ -11,6 +11,8 @@ import MenuContent from './MenuContent';
 // import CardAlert from './CardAlert';
 import OptionsMenu from './OptionsMenu';
 import { authClient } from '~/lib/auth';
+import Button from '@mui/material/Button';
+import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 
 const drawerWidth = 240;
 
@@ -83,7 +85,13 @@ export default function SideMenu() {
             {session?.user.email}
           </Typography>
         </Box>
-        <OptionsMenu />
+        {(session!=null) ?
+          <OptionsMenu />
+        :
+          <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />}>
+            Login
+          </Button>
+        }
       </Stack>
     </Drawer>
   );
