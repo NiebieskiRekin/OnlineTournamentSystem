@@ -13,6 +13,16 @@ export default defineConfig({
       },
     },
   },
+  ssr: {
+    noExternal: ['@mui/x-data-grid']
+  },
+  optimizeDeps: {
+    include: [
+      '@mui/x-data-grid',
+      '@mui/x-date-pickers',
+      '@mui/material'
+    ],
+  },
   resolve: {
     alias: {
       "@/frontend": "/app",

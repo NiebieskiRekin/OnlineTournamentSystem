@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import * as React from 'react';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { useForkRef } from '@mui/material/utils';
 import Button from '@mui/material/Button';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
@@ -10,7 +11,7 @@ import { DatePicker, type DatePickerFieldProps } from '@mui/x-date-pickers/DateP
 import {
   useParsedFormat,
   usePickerContext,
-  useSplitFieldProps,
+  useSplitFieldProps
 } from '@mui/x-date-pickers';
 
 interface ButtonFieldProps extends DatePickerFieldProps {}
