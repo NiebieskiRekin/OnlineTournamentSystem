@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
@@ -15,6 +16,7 @@ import { Card } from '~/components/ui/card';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { authClient } from '~/lib/auth';
 import { LoginContainer } from '~/components/ui/login-container';
+import { useNavigate } from 'react-router';
 
 
 type Inputs = {
@@ -28,6 +30,8 @@ export default function SignIn() {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const [shouldRedirectToDashboard, setShouldRedirectToDashboard] = React.useState(false);
+  const navigate = useNavigate();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -36,6 +40,12 @@ export default function SignIn() {
   const handleClose = () => {
     setOpen(false);
   };
+
+  React.useEffect(()=>{
+    if (shouldRedirectToDashboard){
+      navigate("/");
+    }
+  });
 
   const {
       register,
@@ -54,6 +64,9 @@ export default function SignIn() {
         onError: (ctx) => {
           alert(ctx.error.message);
         },
+        onSuccess: (ctx) => {
+          setShouldRedirectToDashboard(true);
+        }
       }
     );
     }

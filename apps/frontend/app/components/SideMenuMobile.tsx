@@ -11,6 +11,9 @@ import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import MenuButton from './MenuButton';
 import MenuContent from './MenuContent';
 import { authClient } from '~/lib/auth';
+import { useNavigate } from 'react-router';
+import { useState } from 'react';
+import OptionsMenu from './OptionsMenu';
 // import CardAlert from './CardAlert';
 
 interface SideMenuMobileProps {
@@ -20,6 +23,14 @@ interface SideMenuMobileProps {
 
 export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobileProps) {
   const { data: session } = authClient.useSession();
+    const [shouldRedirectToLogin,setShouldRedirectToLogin] = useState(false);
+    const navigate = useNavigate();
+  
+    React.useEffect(()=>{
+      if (shouldRedirectToLogin){
+        navigate("/login")
+      }
+    })
   return (
     <Drawer
       anchor="right"
@@ -66,11 +77,9 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
         {/* <CardAlert /> */}
         <Stack sx={{ p: 2 }}>
           {(session != null) ?
-            <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />}>
-              Logout
-            </Button>
+              <OptionsMenu />
             :
-            <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />}>
+            <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />} onClick={()=>setShouldRedirectToLogin(true)}>
               Login
             </Button>
           }

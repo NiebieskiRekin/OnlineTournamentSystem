@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
@@ -13,6 +14,8 @@ import OptionsMenu from './OptionsMenu';
 import { authClient } from '~/lib/auth';
 import Button from '@mui/material/Button';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
+import { useNavigate } from 'react-router';
+import { useState } from 'react';
 
 const drawerWidth = 240;
 
@@ -29,6 +32,14 @@ const Drawer = styled(MuiDrawer)({
 
 export default function SideMenu() {
   const { data: session } = authClient.useSession()
+  const [shouldRedirectToLogin,setShouldRedirectToLogin] = useState(false);
+  const navigate = useNavigate();
+
+  React.useEffect(()=>{
+    if (shouldRedirectToLogin){
+      navigate("/login")
+    }
+  })
 
   return (
     <Drawer
@@ -88,7 +99,7 @@ export default function SideMenu() {
         {(session!=null) ?
           <OptionsMenu />
         :
-          <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />}>
+          <Button variant="outlined" fullWidth startIcon={<LoginRoundedIcon />} onClick={()=>setShouldRedirectToLogin(true)}>
             Login
           </Button>
         }
