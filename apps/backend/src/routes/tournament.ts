@@ -6,13 +6,12 @@ import {
   tournamentUpdateSchema,
   tournamentQueryParams
 } from "@/backend/db/types";
-import { tournament, user } from "../db/schema";
+import { tournament } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 // import { z } from "@hono/zod-openapi";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
-import { QueryBuilder } from "drizzle-orm/pg-core";
 
 function addHours(d: Date, h: number) {
   d.setTime(d.getTime() + (h*60*60*1000));
@@ -102,7 +101,7 @@ export const tournamentRoute = new Hono<auth_vars>()
             .limit(limit)
             .offset(offset);
           
-        return c.json({data: res, totalCount: totalCount}, 200);
+        return c.json({data: res, meta: {totalCount: totalCount, page: page, pageSize: pageSize}}, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }
@@ -113,11 +112,17 @@ export const tournamentRoute = new Hono<auth_vars>()
     zValidator("json", tournamentInsertSchema),
     async (c) => {
       try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+
         const req = c.req.valid("json");
 
         const result = await db
           .insert(tournament)
-          .values(req)
+          .values({...req, organizer: user_session.id})
           .returning()
           .then((res) => res[0]);
 
@@ -132,12 +137,23 @@ export const tournamentRoute = new Hono<auth_vars>()
     zValidator("json", tournamentUpdateSchema),
     async (c) => {
       try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+
         const req = c.req.valid("json");
 
         const result = await db
             .update(tournament)
             .set({...req, updatedAt: new Date(Date.now())})
-            .where(eq(tournament.id, req.id))
+            .where(
+              and(
+                eq(tournament.id, req.id),
+                eq(tournament.organizer,user_session.id)
+              )
+            )
             .returning()
             .then((res) => res[0])
 
@@ -177,11 +193,22 @@ export const tournamentRoute = new Hono<auth_vars>()
     "/:id{[0-9]+}",
     async (c) => {
       try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+
         const id = Number.parseInt(c.req.param("id"));
 
         const result = await db
           .delete(tournament)
-          .where(eq(tournament.id, id))
+          .where(
+            and(
+              eq(tournament.id, id),
+              eq(tournament.organizer,user_session.id)
+            )
+          )
           .returning()
           .then((res) => res[0]);
 
