@@ -11,6 +11,7 @@ const sorting = z.object({
     desc: z.boolean()
 });
 
+
 const disciplineSelectSchema = createSelectSchema(discipline);
 type Discipline = z.infer<typeof disciplineSelectSchema>;
 const disciplineUpdateSchema = createUpdateSchema(discipline).required({
@@ -29,17 +30,20 @@ const sponsorInsertSchema = createInsertSchema(sponsor).omit({
     id: true
 });
 
-const tournamentSelectSchema = createSelectSchema(tournament);
+const tournamentDateTweaks = {
+    time: z.date({coerce: true}).nullable(),
+}
+const tournamentSelectSchema = createSelectSchema(tournament).extend(tournamentDateTweaks);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
 const tournamentUpdateSchema = createUpdateSchema(tournament).required({
-    id: true
-});
+    id: true, createdAt: true, updatedAt: true, organizer: true
+}).extend(tournamentDateTweaks);
 const tournamentInsertSchema = createInsertSchema(tournament).omit({
     id: true,
     createdAt: true,
     updatedAt: true,
     organizer: true
-});
+}).extend(tournamentDateTweaks);
 const tournamentColumns = tournamentSelectSchema.omit({id: true}).keyof()
 const tournamentQueryParams = z.object({
     pageIndex: z.number().default(0),

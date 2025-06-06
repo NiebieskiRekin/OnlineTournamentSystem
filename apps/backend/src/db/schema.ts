@@ -76,16 +76,16 @@ export const tournament = pgTable("tournament", {
 	name: text("name").notNull(),
 	discipline: integer("discipline").notNull().references(() => discipline.id, {onDelete: "cascade"}),
 	organizer: text("organizer").notNull().references(() => user.id, { onDelete: "cascade" }),
-	time: timestamp("time"),
+	time: timestamp("time", {mode: "date"}),
 	latitude: numeric("latitude",{mode: "number"}),
 	longitude: numeric("longitude",{mode:"number"}),
 	placeid: text("placeid"),
 	maxParticipants: integer("max_participants").notNull().default(10),
 	applicationDeadline: timestamp("application_deadline"),
-	createdAt: timestamp("created_at").notNull().$defaultFn(
+	createdAt: timestamp("created_at",{mode: "date"}).notNull().$defaultFn(
 		() => /* @__PURE__ */ new Date()
 	),
-	updatedAt: timestamp("updated_at").notNull().$defaultFn(
+	updatedAt: timestamp("updated_at",{mode: "date"}).notNull().$defaultFn(
 		() => /* @__PURE__ */ new Date()
 	),
 	// number of ranked players
