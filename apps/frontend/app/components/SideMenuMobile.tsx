@@ -65,15 +65,15 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
             {session?.user.name}
             </Typography>
           </Stack>
-          <MenuButton showBadge>
+          {/* <MenuButton showBadge>
             <NotificationsRoundedIcon />
-          </MenuButton>
+          </MenuButton> */}
         </Stack>
         <Divider />
-        <Stack sx={{ flexGrow: 1 }}>
+        {/* <Stack sx={{ flexGrow: 1 }}>
           <MenuContent />
           <Divider />
-        </Stack>
+        </Stack> */}
         {/* <CardAlert /> */}
         <Stack sx={{ p: 2 }}>
           {(session != null) ?
