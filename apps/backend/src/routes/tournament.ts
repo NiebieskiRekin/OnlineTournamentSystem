@@ -17,9 +17,13 @@ export const tournamentRoute = new Hono<auth_vars>()
   .use(auth_middleware)
   .get(
     "/",
+    zValidator(
+      'query',
+      
+    ),
     async (c) => {
       try {
-        const { limit, offset} = c.req.query()
+        const { limit, offset, filters, sorting } = c.req.query()
         const res = await db.select().from(tournament)
         .orderBy(asc(tournament.id))
         .limit(Number(limit))

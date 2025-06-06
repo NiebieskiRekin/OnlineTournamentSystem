@@ -6,6 +6,11 @@ import {
   } from "drizzle-zod";
 import { discipline, match, participant, sponsor, tournament } from "./schema";
 
+const sorting = z.object({
+    id: z.string(),
+    desc: z.boolean()
+});
+
 const disciplineSelectSchema = createSelectSchema(discipline);
 type Discipline = z.infer<typeof disciplineSelectSchema>;
 const disciplineUpdateSchema = createUpdateSchema(discipline).required({
@@ -35,6 +40,14 @@ const tournamentInsertSchema = createInsertSchema(tournament).omit({
     updatedAt: true,
     organizer: true
 });
+const tournamentColumns = tournamentSelectSchema.omit({id: true}).keyof()
+const tournamentQueryParams = z.object({
+    pageIndex: z.number().default(0),
+    pageSize: z.number().default(20),
+    columnFilters: z.array(tournamentSelectSchema.omit({id: true}).partial()).default([]),
+    sorting: z.array(sorting.extend({id: tournamentColumns})).default([]),
+    globalFilter: z.string()
+}).partial()
 
 const participantSelectSchema = createSelectSchema(participant);
 type Participant = z.infer<typeof participantSelectSchema>;
@@ -58,8 +71,8 @@ const basicErrorSchema = z.object({ error: z.string() });
 export {
     disciplineSelectSchema, disciplineUpdateSchema, disciplineInsertSchema, type Discipline,
     sponsorSelectSchema, sponsorUpdateSchema, sponsorInsertSchema, type Sponsor,
-    tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament,
+    tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams,
     participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
     matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
-    basicErrorSchema
+    basicErrorSchema, sorting, 
 };
