@@ -49,12 +49,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
+      <QueryClientProvider client={queryClient}>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
-        <QueryClientProvider client={queryClient}>
           {children}
-          <ReactQueryDevtools initialIsOpen={false} />
+        </LocalizationProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
-        </LocalizationProvider>;
         <ScrollRestoration />
         <Scripts />
       </body>
