@@ -17,7 +17,7 @@ import { addHours } from "../lib/date-utils";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
-  .use(auth_middleware)
+  .use("*",auth_middleware)
   .get(
     "/",
     zValidator(
