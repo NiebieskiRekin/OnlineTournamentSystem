@@ -4,30 +4,10 @@ import { cors } from "hono/cors";
 import { ProcessEnv } from "./env";
 import { registerRoutes } from "./routes";
 import { log } from "./lib/logger";
-import { openAPISpecs } from "hono-openapi";
-import { swaggerUI } from "@hono/swagger-ui";
 import { auth, auth_vars } from "./lib/auth";
 import { auth_middleware } from "./middleware/auth-middleware";
 
 const app = registerRoutes(new Hono<auth_vars>());
-
-app.get(
-  "/openapi",
-  openAPISpecs(app, {
-    documentation: {
-      info: {
-        title: "API online tournament system",
-        version: "0.1.0",
-        description: "API online tournament system",
-      },
-      servers: [
-        { url: "http://localhost:3000", description: "Local Server" },
-      ],
-    },
-  })
-);
-
-app.use("/ui", swaggerUI({ url: "/api/openapi" }));
 
 app.on(["POST", "GET"], "/auth/**", (c) => auth.handler(c.req.raw));
 
