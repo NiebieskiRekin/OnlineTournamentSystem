@@ -13,7 +13,6 @@ import {
   Box,
   CircularProgress,
   Grid,
-  IconButton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,19 +21,14 @@ import {
 } from '@mui/material';
 import { Delete as DeleteIcon, Save as SaveIcon, Add as AddIcon } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { tournamentInsertSchema, tournamentUpdateSchema, tournamentSelectSchema, type Tournament } from '@webdev-project/api-client';
+import { tournamentInsertSchema, tournamentUpdateSchema, type Tournament } from '@webdev-project/api-client';
 import {
-    getTournamentQueryOptions,
-    createTournament,
-    updateTournament,
-    deleteTournament,
     queryKeys,
     parseError,
 } from "../lib/queries"; // Adjust path as necessary
 import apiClient from '~/lib/api-client';
 
-// Schema for data collected by the form in "create" mode
-const createFormValidationSchema = tournamentInsertSchema.pick({
+const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
     discipline: true,
     time: true,
@@ -43,22 +37,8 @@ const createFormValidationSchema = tournamentInsertSchema.pick({
     placeid: true,
     maxParticipants: true,
     applicationDeadline: true,
-  });
-  type CreateFormValues = z.infer<typeof createFormValidationSchema>;
-  
-  // Schema for data collected by the form in "edit" mode
-  const editFormValidationSchema = tournamentUpdateSchema.pick({
-    name: true,
-    discipline: true,
-    time: true,
-    latitude: true,
-    longitude: true,
-    placeid: true,
-    maxParticipants: true,
-    applicationDeadline: true,
-  });
-  type EditFormValues = z.infer<typeof editFormValidationSchema>;
-  type TournamentFormData = CreateFormValues & { organizer?: string };
+});
+type TournamentFormData = z.infer<typeof formValidationSchema>;
 
 interface TournamentFormPageProps {
   tournamentId?: string;
@@ -93,10 +73,8 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
     enabled: isEditMode, 
   });
 
-  const validationSchema = isEditMode ? editFormValidationSchema : createFormValidationSchema;
-
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<TournamentFormData>({
-    resolver: zodResolver(validationSchema),
+    resolver: zodResolver(formValidationSchema),
     defaultValues: {
       name: '',
       discipline: undefined,
@@ -114,7 +92,6 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       const formData: Partial<TournamentFormData> = {
         name: tournamentData.name,
         discipline: tournamentData.discipline,
-        organizer: tournamentData.organizer,
         time: tournamentData.time ? new Date(tournamentData.time) : null,
         latitude: tournamentData.latitude,
         longitude: tournamentData.longitude,
@@ -125,41 +102,43 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       reset(formData);
     } else if (!isEditMode) {
       reset({ // Reset to default for create mode
-        name: '', discipline: undefined, organizer: '', time: null,
+        name: '', discipline: undefined, time: null,
         latitude: null, longitude: null, placeid: '',
         maxParticipants: 10, applicationDeadline: null,
       });
     }
   }, [tournamentData, isEditMode, reset]);
 
-  const createMutation = useMutation(async (tournament: z.infer<typeof tournamentInsertSchema>) => {
-       const response = await apiClient.api.tournament.$post({
-            json: tournament
+  const createMutation = useMutation(
+    { mutationFn: async (payload: z.infer<typeof tournamentInsertSchema>) => {
+        const response = await apiClient.api.tournament.$post({
+            json: payload
         });
         if (!response.ok){
             parseError(response)
         }
-    
+
         if (response.status == 200){
             const result = await response.json();
             return result;
         } else {
-        throw Error("Something went wrong");
+            throw Error("Something went wrong");
         }
-  }, {
+    },
     onSuccess: async () => {
-      await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
-      console.log("created")
-      onClose?.();
+    await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
+    console.log("created")
+    onClose?.();
     },
     onError: (error: Error) => {
-      console.error("Error creating tournament:", error);
-      // Show error message to user
-      alert(`Error creating tournament: ${error.message}`);
+    console.error("Error creating tournament:", error);
+    // Show error message to user
+    alert(`Error creating tournament: ${error.message}`);
     },
-  });
+    });
 
-  const updateMutation = useMutation(async (tournament: z.infer<typeof tournamentUpdateSchema>) => {
+  const updateMutation = useMutation({
+    mutationFn: async (tournament: z.infer<typeof tournamentUpdateSchema>) => {
     const response = await apiClient.api.tournament.$patch({
         json: tournament
       });
@@ -174,7 +153,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       } else {
         throw Error("Something went wrong");
       }
-  }, {
+    },
     onSuccess: async (data: Tournament) => {
         await Promise.allSettled([
             queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENT(data.id.toString())),
@@ -190,8 +169,8 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
     },
   });
 
-  const deleteMutation = useMutation(
-    async (id: string) => {
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
         const response = await apiClient.api.tournament[':id{[0-9]+}'].$delete({
             param: {
                 id: id
@@ -209,7 +188,6 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
             throw Error("Something went wrong");
         }
     },
-    {
     onSuccess: async () => {
     await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
     if (tournamentId) {
@@ -239,7 +217,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       };
       await updateMutation.mutateAsync(payload);
     } else {
-      const createPayload: CreateFormValues = {
+      const createPayload: z.infer<typeof tournamentInsertSchema> = {
         name: formData.name,
         discipline: Number(formData.discipline),
         time: formData.time,
@@ -269,23 +247,30 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            {isEditMode && tournamentData?.organizer && (
+              <Grid size={{xs: 12}}>
+                <Typography component="div" variant="body1" gutterBottom sx={{ mb: 1 }}>
+                  <strong>Organizer ID:</strong> {tournamentData.organizer}
+                </Typography>
+              </Grid>
+            )}
+            <Grid size={{xs: 12}}>
               <Controller
                 name="name"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Tournament Name" fullWidth error={!!errors.name} helperText={errors.name?.message} />
+                 <TextField {...field} label="Tournament Name*" fullWidth error={!!errors.name} helperText={errors.name?.message} />
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={isEditMode ? 6 : 12}>
+            <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="discipline"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Discipline ID"
+                    label="Discipline ID*"
                     type="number"
                     fullWidth
                     error={!!errors.discipline}
@@ -295,31 +280,14 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
-            {isEditMode && (
-              <Grid item xs={12} sm={6}>
-                <Controller
-                  name="organizer"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Organizer ID"
-                      fullWidth
-                      error={!!errors.organizer}
-                      helperText={errors.organizer?.message || "User ID of the organizer."}
-                    />
-                  )}
-                />
-              </Grid>
-            )}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="maxParticipants"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Max Participants"
+                    label="Max Participants*"
                     type="number"
                     fullWidth
                     error={!!errors.maxParticipants}
@@ -329,7 +297,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
-             <Grid item xs={12} sm={6}>
+             <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="time"
                 control={control}
@@ -342,7 +310,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="applicationDeadline"
                 control={control}
@@ -355,7 +323,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="latitude"
                 control={control}
@@ -365,7 +333,6 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                     label="Latitude"
                     type="number"
                     fullWidth
-                    inputProps={{ step: "any" }}
                     error={!!errors.latitude}
                     helperText={errors.latitude?.message}
                     onChange={e => field.onChange(parseFloat(e.target.value) || null)}
@@ -373,7 +340,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="longitude"
                 control={control}
@@ -383,7 +350,6 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                     label="Longitude"
                     type="number"
                     fullWidth
-                    inputProps={{ step: "any" }}
                     error={!!errors.longitude}
                     helperText={errors.longitude?.message}
                     onChange={e => field.onChange(parseFloat(e.target.value) || null)}
@@ -391,7 +357,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{xs: 12, sm: 6}}>
               <Controller
                 name="placeid"
                 control={control}
@@ -407,7 +373,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
               type="submit"
               variant="contained"
               color="primary"
-              disabled={isSubmitting || createMutation.isLoading || updateMutation.isLoading}
+              disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}
               startIcon={isSubmitting ? <CircularProgress size={20} /> : (isEditMode ? <SaveIcon /> : <AddIcon />) }
             >
               {isEditMode ? 'Save Changes' : 'Create Tournament'}
@@ -416,9 +382,9 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
               <Button
                 variant="outlined"
                 color="error"
-                disabled={deleteMutation.isLoading}
+                disabled={deleteMutation.isPending}
                 onClick={() => setOpenDeleteDialog(true)}
-                startIcon={deleteMutation.isLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
+                startIcon={deleteMutation.isPending ? <CircularProgress size={20} /> : <DeleteIcon />}
               >
                 Delete Tournament
               </Button>
@@ -438,8 +404,8 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
           <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error" disabled={deleteMutation.isLoading}>
-            {deleteMutation.isLoading ? <CircularProgress size={20} /> : 'Delete'}
+          <Button onClick={handleDelete} color="error" disabled={deleteMutation.isPending}>
+            {deleteMutation.isPending ? <CircularProgress size={20} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

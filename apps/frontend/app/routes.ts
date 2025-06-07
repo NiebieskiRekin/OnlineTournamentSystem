@@ -10,6 +10,7 @@ import {
     index("./routes/dashboard.tsx"),
     route("/login", "./routes/login.tsx"),
     route("/sign-up", "./routes/sign-up.tsx"),
-    route("/reset-password", "./routes/reset-password.tsx")
+    route("/reset-password", "./routes/reset-password.tsx"),
+    route("/tournament/:id", "./routes/tournament-details.tsx")
   ] satisfies RouteConfig;
   

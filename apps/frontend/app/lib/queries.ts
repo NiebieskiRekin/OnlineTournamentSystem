@@ -1,13 +1,6 @@
 import {
-    disciplineSelectSchema, disciplineUpdateSchema,
-    sponsorSelectSchema, sponsorUpdateSchema,
-    tournamentUpdateSchema, tournamentInsertSchema,
-    participantSelectSchema, participantUpdateSchema,
-    matchSelectSchema, matchUpdateSchema,
     basicErrorSchema, zodErrorSchema
 } from '@webdev-project/api-client';
-import { queryOptions } from "@tanstack/react-query";
-import apiClient from "./api-client";
 import {z} from "zod";
 
 export const queryKeys = {
