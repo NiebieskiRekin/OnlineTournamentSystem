@@ -54,9 +54,11 @@ const tournamentQueryParams = z.object({
     pageSize: z.number({coerce: true}).default(20),
     columnFilters: z.string().refine((val)=>{
         try{
+            console.log("val: ", val)
             tournamentColumnFilters.parse(JSON.parse(val))
             return true
-        } catch {
+        } catch(e: unknown) {
+            console.log("val: ",e)
             return false
         }
     }).transform((val)=>tournamentColumnFilters.parse(JSON.parse(val))),

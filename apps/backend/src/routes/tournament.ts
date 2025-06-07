@@ -5,15 +5,16 @@ import {
 //   tournamentSelectSchema,
   tournamentUpdateSchema,
   tournamentQueryParams,
-  tournamentList
+  // tournamentList
 } from "@/backend/db/types";
-import { tournament } from "../db/schema";
+import { discipline, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
-import { z } from "@hono/zod-openapi";
+// import { z } from "@hono/zod-openapi";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
+
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
@@ -33,7 +34,20 @@ export const tournamentRoute = new Hono<auth_vars>()
         const offset = page * limit
 
       
-        const query = db.select().from(tournament).$dynamic();
+        const query = db.select({
+          id: tournament.id,
+          name: tournament.name,
+          discipline: discipline.name,
+          organizer: user.name,
+          time: tournament.time,
+          latitude: tournament.latitude,
+          longitude: tournament.longitude,
+          maxParticipants: tournament.maxParticipants,
+          applicationDeadline: tournament.applicationDeadline,
+        }).from(tournament)
+        .leftJoin(user,eq(tournament.organizer,user.id))
+        .leftJoin(discipline,eq(tournament.discipline,discipline.id))
+        .$dynamic();
         const whereConditions = [];
 
         if (globalFilter){
@@ -48,6 +62,9 @@ export const tournamentRoute = new Hono<auth_vars>()
         }
 
         columnFilters?.forEach((val)=>{
+            if (val.id){
+              whereConditions.push(eq(tournament.id, val.id))
+            }
             if (val.name){
               whereConditions.push(like(tournament.name, `%${val.name}%`))
             }
@@ -69,9 +86,9 @@ export const tournamentRoute = new Hono<auth_vars>()
             if (val.maxParticipants){
               whereConditions.push(gt(tournament.maxParticipants, val.maxParticipants))
             }
-            // if (val.organizer){
-            //   whereConditions.push(like(user.name, `%${val.organizer}%`))
-            // }
+            if (val.organizer){
+              whereConditions.push(like(user.name, `%${val.organizer}%`))
+            }
         })
 
         let totalCountQuery = db.select({count: count()}).from(tournament).$dynamic()
@@ -98,7 +115,7 @@ export const tournamentRoute = new Hono<auth_vars>()
             .limit(limit)
             .offset(offset);
         
-        const response: z.infer<typeof tournamentList> = {data: res, meta: {totalCount: totalCount, page: page, pageSize: limit}}
+        const response = {data: res, meta: {totalCount: totalCount, page: page, pageSize: limit}}
         return c.json(response, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);

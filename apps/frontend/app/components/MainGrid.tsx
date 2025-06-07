@@ -18,12 +18,9 @@ import {
   keepPreviousData,
   useQuery,
 } from '@tanstack/react-query';
-import {type Tournament, tournamentList} from "@webdev-project/api-client";
+import {type Tournament} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
-import {z} from "zod";
 import { parseError } from '~/lib/queries';
-
-type TournamentList = z.infer<typeof tournamentList> 
 
 export default function MainGrid() {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
@@ -41,7 +38,7 @@ export default function MainGrid() {
     isRefetching,
     isLoading,
     refetch,
-  } = useQuery<TournamentList>({
+  } = useQuery({
     queryKey: [
       'list-tournaments"',
       {
@@ -67,7 +64,7 @@ export default function MainGrid() {
       }
   
       if (response.ok){
-        const result: TournamentList = tournamentList.parse(await response.json());
+        const result = await response.json();
         return result;
       } else {
         throw Error("Something went wrong");

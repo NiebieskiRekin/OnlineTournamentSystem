@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, boolean, serial, integer, primaryKey, numeric } from "drizzle-orm/pg-core";
+import { lte } from "drizzle-orm";
+import { pgTable, text, timestamp, boolean, serial, integer, primaryKey, numeric, check } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -80,6 +81,7 @@ export const tournament = pgTable("tournament", {
 	latitude: numeric("latitude",{mode: "number"}),
 	longitude: numeric("longitude",{mode:"number"}),
 	placeid: text("placeid"),
+  participants: integer("participants").notNull().default(0),
 	maxParticipants: integer("max_participants").notNull().default(10),
 	applicationDeadline: timestamp("application_deadline"),
 	createdAt: timestamp("created_at",{mode: "date"}).notNull().$defaultFn(
@@ -88,8 +90,10 @@ export const tournament = pgTable("tournament", {
 	updatedAt: timestamp("updated_at",{mode: "date"}).notNull().$defaultFn(
 		() => /* @__PURE__ */ new Date()
 	),
-	// number of ranked players
-});
+  },
+  (table) => [
+    check("participants_cannot_be_greater_than_max", lte(table.participants,table.maxParticipants))
+]);
 
 export const participant = pgTable("participant", {
 	match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
