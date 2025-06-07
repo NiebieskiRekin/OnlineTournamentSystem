@@ -1,4 +1,4 @@
-import { lte } from "drizzle-orm";
+import { gte, lte, sql } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, serial, integer, primaryKey, numeric, check } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -61,45 +61,30 @@ export const verification = pgTable("verification", {
   ),
 });
 
-export const discipline = pgTable("discipline", {
-	id: serial().primaryKey(),
-	name: text("name").unique()
-})
-
-export const sponsor = pgTable("sponsor",{
-	id: serial().primaryKey(),
-	name: text("name").notNull().unique(),
-	logo: text("logo")
-})
-
 export const tournament = pgTable("tournament", {
 	id: serial().primaryKey(),
 	name: text("name").notNull(),
-	discipline: integer("discipline").notNull().references(() => discipline.id, {onDelete: "cascade"}),
+	discipline: text("discipline").notNull(),
 	organizer: text("organizer").notNull().references(() => user.id, { onDelete: "cascade" }),
-	time: timestamp("time", {mode: "date"}),
-	latitude: numeric("latitude",{mode: "number"}),
-	longitude: numeric("longitude",{mode:"number"}),
+	time: timestamp("time", {mode: "string", withTimezone: true}),
 	placeid: text("placeid"),
   participants: integer("participants").notNull().default(0),
 	maxParticipants: integer("max_participants").notNull().default(10),
-	applicationDeadline: timestamp("application_deadline"),
-	createdAt: timestamp("created_at",{mode: "date"}).notNull().$defaultFn(
-		() => /* @__PURE__ */ new Date()
-	),
-	updatedAt: timestamp("updated_at",{mode: "date"}).notNull().$defaultFn(
-		() => /* @__PURE__ */ new Date()
-	),
+	applicationDeadline: timestamp("application_deadline", {mode: "string", withTimezone: true}),
+  sponsorLogos: text("sponsor_logos"),
   },
   (table) => [
-    check("participants_cannot_be_greater_than_max", lte(table.participants,table.maxParticipants))
+    check("participants_cannot_be_greater_than_max", lte(table.participants,table.maxParticipants)),
+    check("cannot_host_in_the_past", gte(table.time,sql`CURRENT_TIMESTAMP`)),
+    check("cannot_apply_in_the_past", gte(table.applicationDeadline,sql`CURRENT_TIMESTAMP`)),
 ]);
 
 export const participant = pgTable("participant", {
 	match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
 	user: text("id").notNull().references(()=>user.id,{onDelete:"cascade"}),
 	score: integer("score"),
-	winner: boolean("winner")
+	winner: boolean("winner"),
+  licenseNumber: text("license_number").notNull(),
 }, (table) => [
 	primaryKey({ columns: [table.match, table.user]})]);
 
