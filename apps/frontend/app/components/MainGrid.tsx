@@ -107,19 +107,33 @@ export default function MainGrid() {
       {
         accessorKey: 'time',
         header: 'Time',
+        filterVariant: 'date',
+        Cell: ({ cell }) => {
+          if (cell.getValue() != null)
+            return new Date(cell.getValue<Date>()).toLocaleString()
+          return null
+        },
+        enableGlobalFilter: false,
+        filterFn: 'greaterThan',
       },
-      // {
-      //   accessorFn: (row) => new Date(row.lastLogin),
-      //   id: 'lastLogin',
-      //   header: 'Last Login',
-      //   Cell: ({ cell }) => new Date(cell.getValue<Date>()).toLocaleString(),
-      //   filterFn: 'greaterThan',
-      //   filterVariant: 'date',
-      //   enableGlobalFilter: false,
-      // },
+      {
+        accessorKey: 'maxParticipants',
+        header: 'Max participants',
+      },
+      {
+        accessorKey: 'applicationDeadline',
+        header: 'Application deadline',
+        filterVariant: 'date',
+        Cell: ({ cell }) => {
+          if (cell.getValue() != null)
+            return new Date(cell.getValue<Date>()).toLocaleString()
+          return null
+        },
+        enableGlobalFilter: false,
+        filterFn: 'greaterThan',
+      }
     ],
     [],
-    //end
   );
 
   const table = useMaterialReactTable({

@@ -11,6 +11,7 @@ const sorting = z.object({
     desc: z.boolean({coerce: true})
 });
 
+const sponsorLogos = z.array(z.string().url());
 const tournamentSelectSchema = createSelectSchema(tournament);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
 const tournamentUpdateSchema = createUpdateSchema(tournament).omit({
@@ -80,5 +81,5 @@ export {
     tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams, tournamentList,
     participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
     matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
-    basicErrorSchema, sorting, 
+    basicErrorSchema, sorting, sponsorLogos
 };

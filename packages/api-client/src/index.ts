@@ -3,7 +3,7 @@ export {
   tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams, tournamentList,
   participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
   matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
-  basicErrorSchema, sorting, 
+  basicErrorSchema, sorting, sponsorLogos
 } from "@webdev-project/backend/schema";
 import {z} from "zod";
 import { hc } from "hono/client";

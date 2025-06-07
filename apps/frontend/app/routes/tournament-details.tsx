@@ -32,11 +32,11 @@ const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
     discipline: true,
     time: true,
-    latitude: true,
-    longitude: true,
     placeid: true,
     maxParticipants: true,
     applicationDeadline: true,
+    participants: true,
+    sponsorLogos: true
 });
 type TournamentFormData = z.infer<typeof formValidationSchema>;
 
@@ -79,11 +79,11 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       name: '',
       discipline: undefined,
       time: null,
-      latitude: null,
-      longitude: null,
       placeid: '',
       maxParticipants: 10,
       applicationDeadline: null,
+      participants: 0,
+      sponsorLogos: ""
     },
   });
 
@@ -92,18 +92,18 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       const formData: Partial<TournamentFormData> = {
         name: tournamentData.name,
         discipline: tournamentData.discipline,
-        time: tournamentData.time ? new Date(tournamentData.time) : null,
-        latitude: tournamentData.latitude,
-        longitude: tournamentData.longitude,
+        time: tournamentData.time ? new Date(tournamentData.time).toDateString() : null,
         placeid: tournamentData.placeid,
         maxParticipants: tournamentData.maxParticipants,
-        applicationDeadline: tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline) : null,
+        applicationDeadline: tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline).toDateString() : null,
+        participants: tournamentData.participants,
+        sponsorLogos: tournamentData.sponsorLogos
       };
       reset(formData);
     } else if (!isEditMode) {
       reset({ // Reset to default for create mode
         name: '', discipline: undefined, time: null,
-        latitude: null, longitude: null, placeid: '',
+        placeid: '', participants: 0, sponsorLogos: "",
         maxParticipants: 10, applicationDeadline: null,
       });
     }
@@ -206,27 +206,11 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
     if (isEditMode && tournamentData) {
       const payload: z.infer<typeof tournamentUpdateSchema> = {
         id: tournamentData.id,
-        name: formData.name,
-        discipline: Number(formData.discipline),
-        time: formData.time,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        placeid: formData.placeid,
-        maxParticipants: Number(formData.maxParticipants),
-        applicationDeadline: formData.applicationDeadline,
+        ...formData
       };
       await updateMutation.mutateAsync(payload);
     } else {
-      const createPayload: z.infer<typeof tournamentInsertSchema> = {
-        name: formData.name,
-        discipline: Number(formData.discipline),
-        time: formData.time,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        placeid: formData.placeid,
-        maxParticipants: Number(formData.maxParticipants),
-        applicationDeadline: formData.applicationDeadline,
-      };
+      const createPayload: z.infer<typeof tournamentInsertSchema> = formData;
       await createMutation.mutateAsync(createPayload);
     }
   };
@@ -319,40 +303,6 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                     {...field}
                     label="Application Deadline"
                     renderInput={(params) => <TextField {...params} fullWidth error={!!errors.applicationDeadline} helperText={errors.applicationDeadline?.message} />}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{xs: 12, sm: 6}}>
-              <Controller
-                name="latitude"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Latitude"
-                    type="number"
-                    fullWidth
-                    error={!!errors.latitude}
-                    helperText={errors.latitude?.message}
-                    onChange={e => field.onChange(parseFloat(e.target.value) || null)}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{xs: 12, sm: 6}}>
-              <Controller
-                name="longitude"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Longitude"
-                    type="number"
-                    fullWidth
-                    error={!!errors.longitude}
-                    helperText={errors.longitude?.message}
-                    onChange={e => field.onChange(parseFloat(e.target.value) || null)}
                   />
                 )}
               />
