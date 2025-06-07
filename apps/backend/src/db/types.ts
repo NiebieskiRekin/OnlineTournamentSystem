@@ -44,9 +44,8 @@ const tournamentInsertSchema = createInsertSchema(tournament).omit({
     updatedAt: true,
     organizer: true
 }).extend(tournamentDateTweaks);
-const tournamentColumns = tournamentSelectSchema.omit({id: true}).keyof()
-
-const tournamentColumnFilters = z.array(tournamentSelectSchema.omit({id: true}).partial()).default([])
+const tournamentColumns = tournamentSelectSchema.keyof()
+const tournamentColumnFilters = z.array(tournamentSelectSchema.partial()).default([])
 const tournamentSorting = z.array(sorting.extend({id: tournamentColumns})).default([]);
 const tournamentQueryParams = z.object({
     pageIndex: z.number({coerce: true}).default(0),
