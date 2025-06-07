@@ -4,49 +4,22 @@ import {
     createInsertSchema,
     createUpdateSchema,
   } from "drizzle-zod";
-import { discipline, match, participant, sponsor, tournament } from "./schema";
+import { match, participant, tournament } from "./schema";
 
 const sorting = z.object({
     id: z.string(),
     desc: z.boolean({coerce: true})
 });
 
-
-const disciplineSelectSchema = createSelectSchema(discipline);
-type Discipline = z.infer<typeof disciplineSelectSchema>;
-const disciplineUpdateSchema = createUpdateSchema(discipline).required({
-    id: true
-});
-const disciplineInsertSchema = createInsertSchema(discipline).omit({
-    id: true,
-});
-
-const sponsorSelectSchema = createSelectSchema(sponsor);
-type Sponsor = z.infer<typeof sponsorSelectSchema>;
-const sponsorUpdateSchema = createUpdateSchema(sponsor).required({
-    id: true,
-});
-const sponsorInsertSchema = createInsertSchema(sponsor).omit({
-    id: true
-});
-
-const tournamentDateTweaks = {
-    time: z.date({coerce: true}).nullable(),
-    updatedAt: z.date({coerce: true}),
-    createdAt: z.date({coerce: true}),
-    applicationDeadline: z.date({coerce: true}).nullable()
-}
-const tournamentSelectSchema = createSelectSchema(tournament).extend(tournamentDateTweaks);
+const tournamentSelectSchema = createSelectSchema(tournament);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
-const tournamentUpdateSchema = createUpdateSchema(tournament).extend(tournamentDateTweaks).omit({
-    createdAt: true, updatedAt: true, organizer: true
+const tournamentUpdateSchema = createUpdateSchema(tournament).omit({
+   organizer: true
 }).partial().required({
     id: true
 });
-const tournamentInsertSchema = createInsertSchema(tournament).extend(tournamentDateTweaks).omit({
+const tournamentInsertSchema = createInsertSchema(tournament).omit({
     id: true,
-    createdAt: true,
-    updatedAt: true,
     organizer: true
 })
 const tournamentColumns = tournamentSelectSchema.keyof()
@@ -104,8 +77,6 @@ const matchInsertSchema = createInsertSchema(match).omit({
 const basicErrorSchema = z.object({ error: z.string() });
 
 export {
-    disciplineSelectSchema, disciplineUpdateSchema, disciplineInsertSchema, type Discipline,
-    sponsorSelectSchema, sponsorUpdateSchema, sponsorInsertSchema, type Sponsor,
     tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams, tournamentList,
     participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
     matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,

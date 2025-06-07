@@ -7,9 +7,8 @@ import {
   tournamentQueryParams,
   // tournamentList
 } from "@/backend/db/types";
-import { discipline, tournament, user } from "../db/schema";
+import { tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
-// import { z } from "@hono/zod-openapi";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
@@ -37,16 +36,13 @@ export const tournamentRoute = new Hono<auth_vars>()
         const query = db.select({
           id: tournament.id,
           name: tournament.name,
-          discipline: discipline.name,
+          discipline: tournament.discipline,
           organizer: user.name,
           time: tournament.time,
-          latitude: tournament.latitude,
-          longitude: tournament.longitude,
           maxParticipants: tournament.maxParticipants,
           applicationDeadline: tournament.applicationDeadline,
         }).from(tournament)
         .leftJoin(user,eq(tournament.organizer,user.id))
-        .leftJoin(discipline,eq(tournament.discipline,discipline.id))
         .$dynamic();
         const whereConditions = [];
 
@@ -72,13 +68,8 @@ export const tournamentRoute = new Hono<auth_vars>()
               whereConditions.push(like(tournament.discipline, `%${val.discipline}%`))
             }
             if (val.time){
-              whereConditions.push(between(tournament.time, addHours(val.time, -1), addHours(val.time, 1)))
-            }
-            if (val.latitude){
-              whereConditions.push(between(tournament.latitude, val.latitude - 0.2, val.latitude + 0.2))
-            }
-            if (val.longitude){
-              whereConditions.push(between(tournament.longitude, val.longitude - 0.2, val.longitude + 0.2))
+              const timeval = new Date(Date.parse(val.time));
+              whereConditions.push(between(tournament.time, addHours(timeval, -1).toDateString(), addHours(timeval, 1).toDateString()))
             }
             if (val.applicationDeadline){
               whereConditions.push(gt(tournament.applicationDeadline, val.applicationDeadline))
@@ -162,7 +153,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         const result = await db
             .update(tournament)
-            .set({...req, updatedAt: new Date(Date.now())})
+            .set(req)
             .where(
               and(
                 eq(tournament.id, req.id),

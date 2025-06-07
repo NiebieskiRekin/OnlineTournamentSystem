@@ -1,7 +1,5 @@
 import type { ApiRoutes } from "@webdev-project/backend/routes";
 export {
-  disciplineSelectSchema, disciplineUpdateSchema, disciplineInsertSchema, type Discipline,
-  sponsorSelectSchema, sponsorUpdateSchema, sponsorInsertSchema, type Sponsor,
   tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams, tournamentList,
   participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
   matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
