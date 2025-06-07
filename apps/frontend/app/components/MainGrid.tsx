@@ -11,7 +11,7 @@ import {
   type MRT_PaginationState,
   type MRT_SortingState,
 } from 'material-react-table';
-import { Alert, IconButton, Tooltip } from '@mui/material';
+import { Alert, IconButton, MenuItem, Tooltip } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   keepPreviousData,
@@ -22,6 +22,7 @@ import apiClient from '~/lib/api-client';
 import { parseError, queryKeys } from '~/lib/queries';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router';
+import { authClient } from '~/lib/auth';
 
 export default function MainGrid() {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
@@ -32,6 +33,7 @@ export default function MainGrid() {
     pageIndex: 0,
     pageSize: 20,
   });
+  const { data: session } = authClient.useSession();
 
   const {
     data: { data = [], meta } = {},
@@ -167,6 +169,15 @@ export default function MainGrid() {
       showProgressBars: isRefetching,
       sorting,
     },
+    enableRowActions: true,
+    renderRowActionMenuItems: ({ row }) => [
+      <MenuItem key="details" onClick={() => navigate(`/tournament/${row.original.id}`)} disabled={isLoading}>
+        Details
+      </MenuItem>,
+      <MenuItem key='edit' onClick={()=>navigate(`/tournament/${row.original.id}/edit`)} disabled={isLoading || session?.user?.id ? session!.user.id === row.original.organizer : true}>
+        Edit
+      </MenuItem>
+    ],
   });
 
   return (
