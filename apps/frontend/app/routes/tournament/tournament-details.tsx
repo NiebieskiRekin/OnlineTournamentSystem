@@ -154,8 +154,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
         <Divider sx={{ my: 2 }} />
 
         <Grid container spacing={2}>
-          <DetailItem label="Discipline ID" value={tournamentData.discipline} />
-          <DetailItem label="Organizer ID" value={tournamentData.organizer} />
+          <DetailItem label="Discipline" value={tournamentData.discipline} />
+          <DetailItem label="Organizer" value={tournamentData.organizer} />
           <DetailItem label="Tournament Time" value={tournamentData.time ? new Date(tournamentData.time).toLocaleString() : 'N/A'} />
           <DetailItem label="Application Deadline" value={tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline).toLocaleString() : 'N/A'} />
           <DetailItem label="Max Participants" value={tournamentData.maxParticipants} />

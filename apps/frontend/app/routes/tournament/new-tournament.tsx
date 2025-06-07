@@ -46,7 +46,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<TournamentFormData>({
     resolver: zodResolver(formValidationSchema),
     defaultValues: {
-      name: '',
+      name: undefined,
       discipline: undefined,
       time: undefined,
       placeid: '',

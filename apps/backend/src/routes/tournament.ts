@@ -7,7 +7,7 @@ import {
   tournamentQueryParams,
   // tournamentList
 } from "@/backend/db/types";
-import { tournament, user } from "../db/schema";
+import { participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
@@ -179,8 +179,18 @@ export const tournamentRoute = new Hono<auth_vars>()
         const id = Number.parseInt(c.req.param("id"));
 
         const result = await db
-          .select()
+          .select({
+            id: tournament.id,
+            name: tournament.name,
+            discipline: tournament.discipline,
+            organizer: user.name,
+            time: tournament.time,
+            maxParticipants: tournament.maxParticipants,
+            applicationDeadline: tournament.applicationDeadline,
+          
+          })
           .from(tournament)
+          .leftJoin(user,eq(tournament.organizer,user.id))
           .where(eq(tournament.id, id))
           .then((res) => res[0]);
 
@@ -188,7 +198,18 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Not found"}, 404);
         }
 
-        return c.json(result);
+        const participants = await db
+          .select({
+            user: user.name,
+            score: participant.score,
+            winner: participant.winner,
+            licenceNumber: participant.licenseNumber
+          }).from(participant)
+          .innerJoin(tournament,eq(participant.tournament,tournament.id))
+          .innerJoin(user,eq(participant.user,user.id)).
+          where(eq(tournament.id,id));
+
+        return c.json({...result, participants: participants});
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }

@@ -80,13 +80,13 @@ export const tournament = pgTable("tournament", {
 ]);
 
 export const participant = pgTable("participant", {
-	match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
+	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete:"cascade"}),
 	user: text("id").notNull().references(()=>user.id,{onDelete:"cascade"}),
 	score: integer("score"),
 	winner: boolean("winner"),
   licenseNumber: text("license_number").notNull(),
 }, (table) => [
-	primaryKey({ columns: [table.match, table.user]})]);
+	primaryKey({ columns: [table.tournament, table.user]})]);
 
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
