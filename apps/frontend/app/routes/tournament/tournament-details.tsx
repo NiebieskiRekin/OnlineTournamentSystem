@@ -177,7 +177,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
                 loading="lazy"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=place_id:${tournamentData.placeid}`}
+                src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=place_id:${tournamentData.placeid.trim()}`}
               ></iframe>
           </Box>
         )}
