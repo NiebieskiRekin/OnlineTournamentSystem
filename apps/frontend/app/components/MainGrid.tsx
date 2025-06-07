@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -19,11 +20,14 @@ import {
 import {type Tournament} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
 import { parseError, queryKeys } from '~/lib/queries';
+import AddIcon from '@mui/icons-material/Add';
+import { useNavigate } from 'react-router';
 
 export default function MainGrid() {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
   const [globalFilter, setGlobalFilter] = useState('');
   const [sorting, setSorting] = useState<MRT_SortingState>([]);
+  const navigate = useNavigate()
   const [pagination, setPagination] = useState<MRT_PaginationState>({
     pageIndex: 0,
     pageSize: 20,
@@ -73,18 +77,6 @@ export default function MainGrid() {
   });
 
   const columns = useMemo<MRT_ColumnDef<Tournament>[]>(
-    // id: number;
-    // name: string;
-    // discipline: number;
-    // organizer: string;
-    // createdAt: Date;
-    // updatedAt: Date;
-    // time: Date | null;
-    // latitude: number | null;
-    // longitude: number | null;
-    // placeid: string | null;
-    // maxParticipants: number;
-    // applicationDeadline: Date | null;
     () => [
       {
         accessorKey: 'id',
@@ -152,11 +144,18 @@ export default function MainGrid() {
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     renderTopToolbarCustomActions: () => (
-      <Tooltip arrow title="Refresh Data">
-        <IconButton onClick={() => refetch()}>
-          <RefreshIcon />
-        </IconButton>
-      </Tooltip>
+      <Box>
+        <Tooltip arrow title="Refresh Data">
+          <IconButton onClick={() => refetch()}>
+            <RefreshIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip arrow title="Create a new tournament">
+          <IconButton onClick={() => navigate('/tournament/create')}>
+            <AddIcon/>
+          </IconButton>
+        </Tooltip>
+      </Box>
     ),
     rowCount: meta?.totalCount ?? 0,
     state: {
