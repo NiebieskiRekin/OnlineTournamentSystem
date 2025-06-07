@@ -32,6 +32,8 @@ const sponsorInsertSchema = createInsertSchema(sponsor).omit({
 
 const tournamentDateTweaks = {
     time: z.date({coerce: true}).nullable(),
+    updatedAt: z.date({coerce: true}),
+    createdAt: z.date({coerce: true}),
 }
 const tournamentSelectSchema = createSelectSchema(tournament).extend(tournamentDateTweaks);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
