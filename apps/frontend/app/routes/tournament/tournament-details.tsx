@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Container,
   Paper,
   Typography,
-  TextField,
   Button,
   Box,
   CircularProgress,
@@ -15,28 +13,29 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Divider,
 } from '@mui/material';
-import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import {
     queryKeys,
     parseError,
-} from "../../lib/queries"; // Adjust path as necessary
+} from "../../lib/queries";
 import apiClient from '~/lib/api-client';
 import { createAuthClient } from 'better-auth/react';
-import { useParams } from 'react-router';
+import { useParams, Link as RouterLink } from 'react-router';
 
-interface TournamentFormPageProps {
+interface TournamentDetailsPageProps {
   onClose?: () => void;
 }
 
-const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
+const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }) => {
   const queryClient = useQueryClient();
   const { useSession } = createAuthClient();
+  const { data: session } = useSession();
   const { tournamentId } = useParams();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-
-  const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError } = useQuery({
+  const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError, refetch } = useQuery({
     queryKey: queryKeys.LIST_TOURNAMENT(tournamentId ?? "").queryKey,
     queryFn: async () => {
         const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
@@ -79,7 +78,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
     onSuccess: async () => {
     await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
     if (tournamentId) {
-        queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(tournamentId.toString()));
+        queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(tournamentId));
     } 
       setOpenDeleteDialog(false);
       onClose?.();
@@ -96,15 +95,89 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
     }
   };
 
+  useEffect(() => {
+    void refetch();
+  }, [tournamentId, refetch]);
+
   if (isLoadingTournament) return <CircularProgress />;
   if (fetchError) return <Typography color="error">Error loading tournament: {fetchError.message}</Typography>;
+  if (!tournamentData) return <Typography>Tournament not found.</Typography>;
+
+  const isOrganizer = session?.user?.id === tournamentData?.organizer;
+
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY as string;
+
+  const DetailItem: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+    <Grid size={{xs: 12, sm: 6}}>
+      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        {label}
+      </Typography>
+      <Typography variant="body1">
+        {value ?? 'N/A'}
+      </Typography>
+    </Grid>
+  );
+
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Tournament details
-        </Typography>
-        <p>{tournamentId + ": " + JSON.stringify(tournamentData)}</p>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h4" component="h1">
+            {tournamentData.name}
+          </Typography>
+          <Box>
+            <Button
+              component={RouterLink}
+              to={`/tournament/edit-tournament/${tournamentId}`}
+              variant="outlined"
+              color="primary"
+              startIcon={<EditIcon />}
+              disabled={!isOrganizer || deleteMutation.isPending}
+              sx={{ mr: 1 }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              disabled={!isOrganizer || deleteMutation.isPending}
+              onClick={() => setOpenDeleteDialog(true)}
+              startIcon={<DeleteIcon />}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Box>
+        <Divider sx={{ my: 2 }} />
+
+        <Grid container spacing={2}>
+          <DetailItem label="Discipline ID" value={tournamentData.discipline} />
+          <DetailItem label="Organizer ID" value={tournamentData.organizer} />
+          <DetailItem label="Tournament Time" value={tournamentData.time ? new Date(tournamentData.time).toLocaleString() : 'N/A'} />
+          <DetailItem label="Application Deadline" value={tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline).toLocaleString() : 'N/A'} />
+          <DetailItem label="Max Participants" value={tournamentData.maxParticipants} />
+          <DetailItem label="Current Participants" value={tournamentData.participants ?? 0} />
+          <DetailItem label="Place ID" value={tournamentData.placeid} />
+          <DetailItem label="Sponsor Logos" value={tournamentData.sponsorLogos || 'None'} />
+        </Grid>
+
+        {tournamentData.placeid && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              Location
+            </Typography>
+              <iframe
+                title="Tournament Location"
+                width="100%"
+                height="450"
+                style={{ border: 0, borderRadius: '4px' }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=place_id:${tournamentData.placeid}`}
+              ></iframe>
+          </Box>
+        )}
       </Paper>
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
@@ -126,5 +199,4 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
   );
 };
 
-export default TournamentFormPage;
-
+export default TournamentDetailsPage;
