@@ -68,11 +68,10 @@ export const tournamentRoute = new Hono<auth_vars>()
               whereConditions.push(like(tournament.discipline, `%${val.discipline}%`))
             }
             if (val.time){
-              const timeval = new Date(Date.parse(val.time));
-              whereConditions.push(between(tournament.time, addHours(timeval, -1).toDateString(), addHours(timeval, 1).toDateString()))
+              whereConditions.push(between(tournament.time, addHours(val.time, -1).toISOString(), addHours(val.time, 1).toISOString()))
             }
             if (val.applicationDeadline){
-              whereConditions.push(gt(tournament.applicationDeadline, val.applicationDeadline))
+              whereConditions.push(gt(tournament.applicationDeadline, val.applicationDeadline.toISOString()))
             }
             if (val.maxParticipants){
               whereConditions.push(gt(tournament.maxParticipants, val.maxParticipants))
@@ -128,7 +127,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         const result = await db
           .insert(tournament)
-          .values({...req, organizer: user_session.id})
+          .values({...req, organizer: user_session.id, time: req.time.toISOString(), applicationDeadline: req.applicationDeadline?.toISOString()})
           .returning()
           .then((res) => res[0]);
 
@@ -153,7 +152,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         const result = await db
             .update(tournament)
-            .set(req)
+            .set({...req, time: req.time?.toISOString(), applicationDeadline: req.applicationDeadline?.toISOString()})
             .where(
               and(
                 eq(tournament.id, req.id),

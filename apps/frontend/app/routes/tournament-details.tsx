@@ -27,6 +27,7 @@ import {
     parseError,
 } from "../lib/queries"; // Adjust path as necessary
 import apiClient from '~/lib/api-client';
+import dayjs from 'dayjs';
 
 const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
@@ -78,10 +79,10 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
     defaultValues: {
       name: '',
       discipline: undefined,
-      time: null,
+      time: undefined,
       placeid: '',
       maxParticipants: 10,
-      applicationDeadline: null,
+      applicationDeadline: undefined,
       participants: 0,
       sponsorLogos: ""
     },
@@ -92,19 +93,19 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       const formData: Partial<TournamentFormData> = {
         name: tournamentData.name,
         discipline: tournamentData.discipline,
-        time: tournamentData.time ? new Date(tournamentData.time).toDateString() : null,
+        time: tournamentData.time ? new Date(tournamentData.time) : undefined,
         placeid: tournamentData.placeid,
         maxParticipants: tournamentData.maxParticipants,
-        applicationDeadline: tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline).toDateString() : null,
+        applicationDeadline: tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline) : undefined,
         participants: tournamentData.participants,
         sponsorLogos: tournamentData.sponsorLogos
       };
       reset(formData);
     } else if (!isEditMode) {
       reset({ // Reset to default for create mode
-        name: '', discipline: undefined, time: null,
+        name: '', discipline: undefined, time: undefined,
         placeid: '', participants: 0, sponsorLogos: "",
-        maxParticipants: 10, applicationDeadline: null,
+        maxParticipants: 10, applicationDeadline: undefined,
       });
     }
   }, [tournamentData, isEditMode, reset]);
@@ -243,7 +244,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 name="name"
                 control={control}
                 render={({ field }) => (
-                 <TextField {...field} label="Tournament Name*" fullWidth error={!!errors.name} helperText={errors.name?.message} />
+                 <TextField {...field} label="Tournament Name" fullWidth error={!!errors.name} helperText={errors.name?.message} />
                 )}
               />
             </Grid>
@@ -254,12 +255,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Discipline ID*"
-                    type="number"
-                    fullWidth
-                    error={!!errors.discipline}
-                    helperText={errors.discipline?.message || "Enter the numeric ID of the discipline."}
-                    onChange={e => field.onChange(parseInt(e.target.value,10) || undefined)}
+                    label="Discipline" fullWidth error={!!errors.discipline} helperText={errors.discipline?.message}
                   />
                 )}
               />
@@ -271,7 +267,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Max Participants*"
+                    label="Max Participants"
                     type="number"
                     fullWidth
                     error={!!errors.maxParticipants}
@@ -285,11 +281,20 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
               <Controller
                 name="time"
                 control={control}
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <DatePicker
                     {...field}
-                    label="Tournament Date/Time"
-                    renderInput={(params) => <TextField {...params} fullWidth error={!!errors.time} helperText={errors.time?.message} />}
+                    value={dayjs(field.value)}
+                    label="Time"
+                    onChange={(date) => field.onChange(date)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: !!fieldState.error,
+                        helperText: fieldState.error?.message,
+                        onBlur: field.onBlur,
+                      },
+                    }}
                   />
                 )}
               />
@@ -298,11 +303,20 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
               <Controller
                 name="applicationDeadline"
                 control={control}
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <DatePicker
                     {...field}
-                    label="Application Deadline"
-                    renderInput={(params) => <TextField {...params} fullWidth error={!!errors.applicationDeadline} helperText={errors.applicationDeadline?.message} />}
+                    value={dayjs(field.value)}
+                    label="Application deadline"
+                    onChange={(date) => field.onChange(date)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: !!fieldState.error,
+                        helperText: fieldState.error?.message,
+                        onBlur: field.onBlur,
+                      },
+                    }}
                   />
                 )}
               />

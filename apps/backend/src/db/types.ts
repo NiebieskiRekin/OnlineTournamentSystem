@@ -12,14 +12,18 @@ const sorting = z.object({
 });
 
 const sponsorLogos = z.array(z.string().url());
-const tournamentSelectSchema = createSelectSchema(tournament);
+const tournament_date_tweaks = {
+    time: z.date({coerce: true}),
+    applicationDeadline: z.date({coerce: true}).nullable()
+};
+const tournamentSelectSchema = createSelectSchema(tournament).extend(tournament_date_tweaks);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
-const tournamentUpdateSchema = createUpdateSchema(tournament).omit({
+const tournamentUpdateSchema = createUpdateSchema(tournament).extend(tournament_date_tweaks).omit({
    organizer: true
 }).partial().required({
     id: true
 });
-const tournamentInsertSchema = createInsertSchema(tournament).omit({
+const tournamentInsertSchema = createInsertSchema(tournament).extend(tournament_date_tweaks).omit({
     id: true,
     organizer: true
 })

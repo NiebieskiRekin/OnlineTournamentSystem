@@ -1,11 +1,6 @@
 import * as React from 'react';
 import Stack from '@mui/material/Stack';
-import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
-import CustomDatePicker from './CustomDatePicker';
 import NavbarBreadcrumbs from './NavbarBreadcrumbs';
-import MenuButton from './MenuButton';
-
-import Search from './Search';
 
 export default function Header() {
   return (
@@ -22,10 +17,6 @@ export default function Header() {
       spacing={2}
     >
       <NavbarBreadcrumbs />
-      <Stack direction="row" sx={{ gap: 1 }}>
-        <Search />
-        <CustomDatePicker />
-      </Stack>
     </Stack>
   );
 }
