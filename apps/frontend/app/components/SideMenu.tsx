@@ -6,13 +6,14 @@ import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-// import CardAlert from './CardAlert';
 import OptionsMenu from './OptionsMenu';
 import { authClient } from '~/lib/auth';
 import Button from '@mui/material/Button';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
+import MenuContent from './MenuContent';
+import { Divider } from '@mui/material';
 
 const drawerWidth = 240;
 
@@ -80,6 +81,25 @@ export default function SideMenu() {
           </Button>
         }
       </Stack>
+      <Box
+        sx={{
+          display: 'flex',
+          mt: 'calc(var(--template-frame-height, 0px) + 4px)',
+          p: 1.5,
+        }}
+      >
+      </Box>
+      <Divider />
+      <Box
+        sx={{
+          overflow: 'auto',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <MenuContent />
+      </Box>
     </Drawer>
   );
 }
