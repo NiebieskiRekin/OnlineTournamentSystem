@@ -15,6 +15,9 @@ import React from "react";
 import queryClient from "./lib/query-client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools/build/modern/production.js";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import "dayjs/locale/en";
+import { LocalizationProvider } from "@mui/x-date-pickers";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -47,10 +50,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
         <QueryClientProvider client={queryClient}>
           {children}
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
+        </LocalizationProvider>;
         <ScrollRestoration />
         <Scripts />
       </body>
