@@ -21,26 +21,29 @@ import {
     parseError,
 } from "../../lib/queries";
 import apiClient from '~/lib/api-client';
-import { createAuthClient } from 'better-auth/react';
+import { authClient } from '~/lib/auth';
 import { useParams, Link as RouterLink } from 'react-router';
 
 interface TournamentDetailsPageProps {
   onClose?: () => void;
 }
 
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY as string;
+
 const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }) => {
   const queryClient = useQueryClient();
-  const { useSession } = createAuthClient();
-  const { data: session } = useSession();
-  const { tournamentId } = useParams();
+  const { data: session } = authClient.useSession();
+  const { id } = useParams();
+  
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError, refetch } = useQuery({
-    queryKey: queryKeys.LIST_TOURNAMENT(tournamentId ?? "").queryKey,
+    queryKey: queryKeys.LIST_TOURNAMENT(id ?? "").queryKey,
     queryFn: async () => {
+        console.log(id)
         const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
             param: {
-                id: tournamentId ?? ""
+                id: id ?? ""
             }
         })
         if (!response.ok){
@@ -55,6 +58,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           }
       },
   });
+
+  const isOrganizer = session?.user?.id === tournamentData?.organizer
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -77,8 +82,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
     },
     onSuccess: async () => {
     await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
-    if (tournamentId) {
-        queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(tournamentId));
+    if (id) {
+        queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(id));
     } 
       setOpenDeleteDialog(false);
       onClose?.();
@@ -90,22 +95,20 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
   });
 
   const handleDelete = () => {
-    if (tournamentId) {
-      deleteMutation.mutate(tournamentId);
+    if (id) {
+      deleteMutation.mutate(id);
     }
   };
 
   useEffect(() => {
     void refetch();
-  }, [tournamentId, refetch]);
+  }, [id, refetch]);
 
   if (isLoadingTournament) return <CircularProgress />;
   if (fetchError) return <Typography color="error">Error loading tournament: {fetchError.message}</Typography>;
   if (!tournamentData) return <Typography>Tournament not found.</Typography>;
 
-  const isOrganizer = session?.user?.id === tournamentData?.organizer;
 
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY as string;
 
   const DetailItem: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
     <Grid size={{xs: 12, sm: 6}}>
@@ -128,7 +131,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           <Box>
             <Button
               component={RouterLink}
-              to={`/tournament/edit-tournament/${tournamentId}`}
+              to={`/tournament/${id}/edit`}
               variant="outlined"
               color="primary"
               startIcon={<EditIcon />}
