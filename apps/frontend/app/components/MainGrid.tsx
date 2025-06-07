@@ -12,7 +12,7 @@ import {
   type MRT_PaginationState,
   type MRT_SortingState,
 } from 'material-react-table';
-import { IconButton, Tooltip } from '@mui/material';
+import { Alert, IconButton, Tooltip } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   keepPreviousData,
@@ -21,7 +21,7 @@ import {
 import {type Tournament, tournamentList} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
 import {z} from "zod";
-import type { ClientResponse } from 'hono/client';
+import { parseError } from '~/lib/queries';
 
 type TournamentList = z.infer<typeof tournamentList> 
 
@@ -36,6 +36,7 @@ export default function MainGrid() {
 
   const {
     data: { data = [], meta } = {},
+    error,
     isError,
     isRefetching,
     isLoading,
@@ -73,6 +74,7 @@ export default function MainGrid() {
       }
     },
     placeholderData: keepPreviousData,
+    throwOnError: (error) => error.response?.status >= 500,
   });
 
   const columns = useMemo<MRT_ColumnDef<Tournament>[]>(
@@ -165,6 +167,7 @@ export default function MainGrid() {
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
         Upcoming tournaments
       </Typography>
+      {isError && <Alert severity="error">{error.message}</Alert>}
       <MaterialReactTable table={table} />;
     </Box>
   );
