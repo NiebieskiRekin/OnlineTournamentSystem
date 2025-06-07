@@ -1,9 +1,9 @@
 import {
-    disciplineSelectSchema, disciplineUpdateSchema
-    sponsorSelectSchema, sponsorUpdateSchema
-    tournamentUpdateSchema, tournamentInsertSchema
-    participantSelectSchema, participantUpdateSchema
-    matchSelectSchema, matchUpdateSchema
+    disciplineSelectSchema, disciplineUpdateSchema,
+    sponsorSelectSchema, sponsorUpdateSchema,
+    tournamentUpdateSchema, tournamentInsertSchema,
+    participantSelectSchema, participantUpdateSchema,
+    matchSelectSchema, matchUpdateSchema,
     basicErrorSchema, zodErrorSchema
 } from '@webdev-project/api-client';
 import { queryOptions } from "@tanstack/react-query";
@@ -23,7 +23,7 @@ export default function formatApiError(apiError: z.infer<typeof zodErrorSchema>)
     .reduce((all, issue) => `${all + issue.path.join(".")}: ${issue.message}\n`, "");
 }
 
-function parseError(response: unknown) { 
+export function parseError(response: unknown) { 
     const parsed = zodErrorSchema.safeParse(response)
     if (parsed.success){
         const message = formatApiError(parsed.data);
@@ -38,19 +38,19 @@ function parseError(response: unknown) {
     throw new Error("Error!")
 }
 
-export const tournamentQueryOptions = queryOptions({
-  ...queryKeys.LIST_TOURNAMENTS,
-  queryFn: async () => {
-    const response = await apiClient.api.tournament.$get();
+// export const tournamentQueryOptions = queryOptions({
+//   ...queryKeys.LIST_TOURNAMENTS,
+//   queryFn: async () => {
+//     const response = await apiClient.api.tournament.$get();
 
-    if (!response.ok){
-        parseError(response)
-    }
+//     if (!response.ok){
+//         parseError(response)
+//     }
 
-    const result = await response.json();
-    return result;
-  },
-});
+//     const result = await response.json();
+//     return result;
+//   },
+// });
 
 export const createTournamentQueryOptions = (id: string) => queryOptions({
   ...queryKeys.LIST_TOURNAMENT(id),

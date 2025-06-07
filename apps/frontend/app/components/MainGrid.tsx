@@ -35,7 +35,6 @@ export default function MainGrid() {
   });
 
   const {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     data: { data = [], meta } = {},
     isError,
     isRefetching,
@@ -67,7 +66,7 @@ export default function MainGrid() {
       }
   
       if (response.ok){
-        const result: TournamentList = await response.json();
+        const result: TournamentList = tournamentList.parse(await response.json());
         return result;
       } else {
         throw Error("Something went wrong");
@@ -148,7 +147,7 @@ export default function MainGrid() {
         </IconButton>
       </Tooltip>
     ),
-    rowCount: meta?.totalRowCount ?? 0,
+    rowCount: meta?.totalCount ?? 0,
     state: {
       columnFilters,
       globalFilter,
@@ -169,8 +168,5 @@ export default function MainGrid() {
       <MaterialReactTable table={table} />;
     </Box>
   );
-}
-function parseError(response: ClientResponse<{ error: string; }, 500, "json">) {
-  throw new Error('Function not implemented.');
 }
 

@@ -8,7 +8,7 @@ import { discipline, match, participant, sponsor, tournament } from "./schema";
 
 const sorting = z.object({
     id: z.string(),
-    desc: z.boolean()
+    desc: z.boolean({coerce: true})
 });
 
 
@@ -45,11 +45,28 @@ const tournamentInsertSchema = createInsertSchema(tournament).omit({
     organizer: true
 }).extend(tournamentDateTweaks);
 const tournamentColumns = tournamentSelectSchema.omit({id: true}).keyof()
+
+const tournamentColumnFilters = z.array(tournamentSelectSchema.omit({id: true}).partial()).default([])
+const tournamentSorting = z.array(sorting.extend({id: tournamentColumns})).default([]);
 const tournamentQueryParams = z.object({
-    pageIndex: z.number().default(0),
-    pageSize: z.number().default(20),
-    columnFilters: z.array(tournamentSelectSchema.omit({id: true}).partial()).default([]),
-    sorting: z.array(sorting.extend({id: tournamentColumns})).default([]),
+    pageIndex: z.number({coerce: true}).default(0),
+    pageSize: z.number({coerce: true}).default(20),
+    columnFilters: z.string().refine((val)=>{
+        try{
+            tournamentColumnFilters.parse(JSON.parse(val))
+            return true
+        } catch {
+            return false
+        }
+    }).transform((val)=>tournamentColumnFilters.parse(JSON.parse(val))),
+    sorting: z.string().refine((val)=>{
+        try{
+            tournamentSorting.parse(JSON.parse(val))
+            return true
+        } catch {
+            return false
+        }
+    }).transform((val)=>tournamentSorting.parse(JSON.parse(val))),
     globalFilter: z.string()
 }).partial()
 const tournamentList = z.object({
