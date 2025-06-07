@@ -17,6 +17,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools/build/modern/
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/en";
 import { LocalizationProvider } from "@mui/x-date-pickers";
+import { Box, CircularProgress } from "@mui/material";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -60,6 +61,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </body>
     </html>
   );
+}
+
+export function HydrateFallback() {
+  return (<Box sx={{ display: 'flex', justifyContent: 'center', minHeight: "100%", minWidth: "100%" }}>
+    <CircularProgress />
+  </Box>);
 }
 
 export default function App() {

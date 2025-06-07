@@ -25,7 +25,7 @@ import { tournamentInsertSchema, tournamentUpdateSchema, type Tournament } from 
 import {
     queryKeys,
     parseError,
-} from "../lib/queries"; // Adjust path as necessary
+} from "../../lib/queries"; // Adjust path as necessary
 import apiClient from '~/lib/api-client';
 import dayjs from 'dayjs';
 
