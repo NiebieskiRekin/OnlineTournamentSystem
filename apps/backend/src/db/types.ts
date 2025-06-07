@@ -38,14 +38,16 @@ const tournamentDateTweaks = {
 const tournamentSelectSchema = createSelectSchema(tournament).extend(tournamentDateTweaks);
 type Tournament = z.infer<typeof tournamentSelectSchema>;
 const tournamentUpdateSchema = createUpdateSchema(tournament).required({
-    id: true, createdAt: true, updatedAt: true, organizer: true
-}).extend(tournamentDateTweaks);
+    id: true
+}).omit({
+    createdAt: true, updatedAt: true, organizer: true
+}).extend({time: z.date({coerce: true}).nullable()});
 const tournamentInsertSchema = createInsertSchema(tournament).omit({
     id: true,
     createdAt: true,
     updatedAt: true,
     organizer: true
-}).extend(tournamentDateTweaks);
+}).extend({time: z.date({coerce: true}).nullable()});
 const tournamentColumns = tournamentSelectSchema.keyof()
 const tournamentColumnFilters = z.array(tournamentSelectSchema.partial()).default([])
 const tournamentSorting = z.array(sorting.extend({id: tournamentColumns})).default([]);

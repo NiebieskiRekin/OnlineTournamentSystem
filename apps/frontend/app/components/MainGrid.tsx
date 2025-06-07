@@ -20,7 +20,7 @@ import {
 } from '@tanstack/react-query';
 import {type Tournament} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
-import { parseError } from '~/lib/queries';
+import { parseError, queryKeys } from '~/lib/queries';
 
 export default function MainGrid() {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
@@ -40,7 +40,7 @@ export default function MainGrid() {
     refetch,
   } = useQuery({
     queryKey: [
-      'list-tournaments"',
+      queryKeys.LIST_TOURNAMENTS,
       {
         columnFilters,
         globalFilter,

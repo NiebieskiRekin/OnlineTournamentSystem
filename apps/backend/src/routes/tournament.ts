@@ -173,7 +173,7 @@ export const tournamentRoute = new Hono<auth_vars>()
             .then((res) => res[0])
 
         if (!result) {
-            return c.notFound();
+            return c.json({error: "Not found"}, 404);
         }
 
         return c.json(result, 200);
@@ -195,7 +195,7 @@ export const tournamentRoute = new Hono<auth_vars>()
           .then((res) => res[0]);
 
         if (!result) {
-            return c.notFound();
+          return c.json({error: "Not found"}, 404);
         }
 
         return c.json(result);
@@ -228,7 +228,7 @@ export const tournamentRoute = new Hono<auth_vars>()
           .then((res) => res[0]);
 
         if (!result) {
-          return c.notFound();
+          return c.json({error: "Not found"}, 404);
         }
 
         return c.json(result);

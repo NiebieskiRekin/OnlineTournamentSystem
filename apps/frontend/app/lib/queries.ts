@@ -52,60 +52,59 @@ export function parseError(response: unknown) {
 //   },
 // });
 
-export const createTournamentQueryOptions = (id: string) => queryOptions({
-  ...queryKeys.LIST_TOURNAMENT(id),
-  queryFn: async () => {
-    const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
-        param: {
-            id
-        }
-    })
-    if (!response.ok){
-        parseError(response)
-    }
+// export const getTournamentQueryOptions = (id: string) => queryOptions({
+//   ...queryKeys.LIST_TOURNAMENT(id),
+//   queryFn: async () => {
+//     const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
+//         param: {
+//             id
+//         }
+//     })
+//     if (!response.ok){
+//         parseError(response)
+//     }
 
-    const result = await response.json();
-    return result;
-  },
-});
+//     const result = await response.json();
+//     return result;
+//   },
+// });
 
-export const createTournament = async (tournament: z.infer<typeof tournamentInsertSchema>) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const response = await apiClient.api.tournament.$post({
-        json: tournament
-    });
-    if (!response.ok){
-        parseError(response)
-    }
+// export const createTournament = async (tournament: z.infer<typeof tournamentInsertSchema>) => {
+//    const response = await apiClient.api.tournament.$post({
+//         json: tournament
+//     });
+//     if (!response.ok){
+//         parseError(response)
+//     }
 
-    const result = await response.json();
-    return result;
-};
+//     const result = await response.json();
+//     return result;
+// };
 
-export const deleteTournament = async (id: string) => {
-    const response = await apiClient.api.tournament[':id{[0-9]+}'].$delete({
-        param: {
-            id: id
-        }
-    });
+// export const deleteTournament = async (id: string) => {
+//     const response = await apiClient.api.tournament[':id{[0-9]+}'].$delete({
+//         param: {
+//             id: id
+//         }
+//     });
 
-    if (!response.ok){
-        parseError(response)
-    }
+//     if (!response.ok){
+//         parseError(response)
+//     }
 
-    const result = await response.json();
-    return result;
-};
+//     const result = await response.json();
+//     return result;
+// };
 
-export const updateTournament = async (tournament: z.infer<typeof tournamentUpdateSchema>) => {
-  const response = await apiClient.api.tournament.$patch({
-    json: tournament,
-  });
+// export const updateTournament = async (tournament: z.infer<typeof tournamentUpdateSchema>) => {
+//   const response = await apiClient.api.tournament.$patch({
+//     json: tournament,
+//   });
 
-  if (!response.ok){
-      parseError(response)
-  }
+//   if (!response.ok){
+//       parseError(response)
+//   }
 
-  const result = await response.json();
-  return result;
-};
+//   const result = await response.json();
+//   return result;
+// };
