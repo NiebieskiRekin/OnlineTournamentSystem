@@ -24,6 +24,7 @@ import queryClient from '~/lib/query-client';
 import {z} from "zod"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 
 interface TournamentParticipantsTableProps {
   tournamentId: number;
@@ -33,6 +34,7 @@ type ParticipantFormData = z.infer<typeof participantInsertSchema>;
 
 const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = ({ tournamentId }) => {
   const { data: session } = authClient.useSession();
+  const navigate = useNavigate()
 
   const {
     data: { data = [], meta } = {},
@@ -208,7 +210,13 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         )
          : (
             <Tooltip arrow title={"Join"}>
-            <IconButton onClick={() =>table.setCreatingRow(true)}>
+            <IconButton onClick={async () =>{
+                if (!session){
+                    await navigate("/login")
+                } else {
+                    table.setCreatingRow(true)
+                }
+            }}>
                 <AddIcon/>
             </IconButton>
             </Tooltip>
@@ -261,7 +269,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
   return (
     <Box sx={{ width: '100%' }}>
     <Typography component="h4">
-      Participants
+      Participants {`(${data.length} / ${meta?.maxParticipants ?? '♾️'})`}
     </Typography>
     {isError && <Alert severity="error">{error.message}</Alert>}
     <MaterialReactTable table={table} />

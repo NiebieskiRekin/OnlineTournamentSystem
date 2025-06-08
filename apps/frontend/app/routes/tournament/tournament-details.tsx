@@ -174,7 +174,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           <DetailItem label="Tournament Time" value={tournamentData.time ? new Date(tournamentData.time).toLocaleString() : 'N/A'} />
           <DetailItem label="Application Deadline" value={tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline).toLocaleString() : 'N/A'} />
           <DetailItem label="Max Participants" value={tournamentData.maxParticipants} />
-          <DetailItem label="Current Participants" value={tournamentData.participants ?? 0} />
+          {/* <DetailItem label="Current Participants" value={tournamentData.participants ?? 0} /> */}
           <DetailItem label="Location" value={tournamentData.location} />
         </Grid>
 

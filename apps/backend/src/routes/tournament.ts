@@ -269,10 +269,8 @@ export const tournamentRoute = new Hono<auth_vars>()
           winner: participant.winner,
           licenseNumber: participant.licenseNumber
         }).from(participant).innerJoin(user,eq(participant.user,user.id)).where(eq(participant.tournament,id));
-        const totalCountQuery = db.select({count: count()}).from(participant).where(eq(participant.tournament,id))
-        const totalCount = (await totalCountQuery.then((res)=>res[0])).count;
-        
-        const response = {data: res, meta: {totalCount: totalCount}}
+        const tournamentData = (await db.select({participants: tournament.participants,maxParticipants: tournament.maxParticipants}).from(tournament).where(eq(tournament.id,id)).then((res)=>res[0]));
+        const response = {data: res, meta: {totalCount: tournamentData.participants, maxParticipants: tournamentData.maxParticipants}}
         return c.json(response, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
@@ -296,14 +294,21 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Not found"}, 404);
         }
 
-        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) < Date.now()){
+        const pastApplicationDate = tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) < Date.now() 
+        if (pastApplicationDate || tour.participants >= tour.maxParticipants){
           return c.json({error: "Cannot apply to this tournament"}, 400);
         }
 
-        const res = await db.insert(participant).values({...req, user: user_session.id, tournament: id, winner: false}).returning().then((res) => res[0]);
+        const res = (await db.transaction(async (tx) =>{
+          const participantQuery = tx.insert(participant).values({...req, user: user_session.id, tournament: id, winner: false}).returning({score: participant.score, licenseNumber: participant.licenseNumber}).then((res) => res[0]);
+          const tournamentQuery = tx.update(tournament).set({participants: sql`${tournament.participants}+1`}).where(eq(tournament.id,id)).returning({participants: tournament.participants}).then((res)=>res[0])
+          return Promise.all([participantQuery,tournamentQuery])
+        }))
+
         return c.json({
-          score: res.score,
-          licenseNumber: res.licenseNumber
+          score: res[0].score,
+          licenseNumber: res[0].licenseNumber,
+          participants: res[1].participants
         }, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
@@ -329,8 +334,17 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Cannot leave this tournament"}, 400);
         }
 
-        const res = await db.delete(participant).where(and(eq(participant.tournament,id), eq(participant.user,user_session.id))).returning().then((res) => res[0])
-        return c.json(res, 200);
+        const res = (await db.transaction(async (tx) =>{
+          const participantQuery = tx.delete(participant).where(and(eq(participant.tournament,id), eq(participant.user,user_session.id))).returning().then((res) => res[0]);
+          const tournamentQuery = tx.update(tournament).set({participants: sql`${tournament.participants}-1`}).where(eq(tournament.id,id)).returning({participants: tournament.participants}).then((res)=>res[0])
+          return Promise.all([participantQuery,tournamentQuery])
+        }))
+
+        return c.json({
+          score: res[0].score,
+          licenseNumber: res[0].licenseNumber,
+          participants: res[1].participants
+        }, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }
