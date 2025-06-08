@@ -27,6 +27,8 @@ import { authClient } from '~/lib/auth';
 import { useParams, Link as RouterLink } from 'react-router';
 import { sponsorLogos } from '@webdev-project/api-client';
 import {z} from "zod";
+import TournamentParticipantsTable from '~/components/ParticipantsTable'; // Adjust path as needed
+
 
 interface TournamentDetailsPageProps {
   onClose?: () => void;
@@ -176,7 +178,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           <DetailItem label="Location" value={tournamentData.location} />
         </Grid>
 
-        {tournamentData.location && (
+        {/* {tournamentData.location && (
           <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom>
               Location
@@ -192,7 +194,9 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
                 src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${tournamentData.location.trim()}`}
               ></iframe>
           </Box>
-        )}
+        )} */}
+
+        <TournamentParticipantsTable tournamentId={tournamentData.id} />
 
         {(parsedSponsorLogos.length ?? 0) > 0 && (
           <Box>
