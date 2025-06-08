@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,7 +10,18 @@ import {
   CircularProgress,
   Typography,
   Alert,
+  Box,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import type { Participant } from '@webdev-project/api-client';
+import apiClient from '~/lib/api-client';
+import { authClient } from '~/lib/auth';
+import { queryKeys, parseError } from '~/lib/queries';
+import { MaterialReactTable, useMaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from '@mui/icons-material/Add';
 
 // This interface defines the structure of individual items in the 'data' array
 // returned by your /tournament/:id/participant endpoint.
@@ -41,75 +52,102 @@ interface TournamentParticipantsTableProps {
 }
 
 const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = ({ tournamentId }) => {
-  const [participants, setParticipants] = useState<ParticipantEntry[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: session } = authClient.useSession();
 
-  useEffect(() => {
-    if (!tournamentId) return;
-
-    const fetchParticipants = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Adjust the API path if your backend is not served under /api
-        const response = await fetch(`/api/tournament/${tournamentId}/participant`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Error fetching participants: ${response.statusText}`);
+  const {
+    data: { data = [], meta } = {},
+    error,
+    isError,
+    isRefetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      queryKeys.LIST_PARTICIPANTS(tournamentId.toString())
+    ],
+    queryFn: async () => {
+      const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$get({
+        param: {
+          id: tournamentId.toString()
         }
-        const result: ParticipantsApiResponse = await response.json();
-        setParticipants(result.data);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unknown error occurred while fetching participants.');
-        }
-        console.error("Failed to fetch participants:", err);
-      } finally {
-        setLoading(false);
+      });
+  
+      if (!response.ok){
+          parseError(response)
       }
-    };
+  
+      if (response.ok){
+        const result = await response.json();
+        return result;
+      } else {
+        throw Error("Something went wrong");
+      }
+    },
+    placeholderData: keepPreviousData,
+    throwOnError: (error) => error.response?.status >= 500,
+  });
 
-    fetchParticipants();
-  }, [tournamentId]);
+  const columns = useMemo<MRT_ColumnDef<Participant>[]>(
+    () => [
+        {
+        accessorKey: 'user',
+        header: 'Name',
+      },
+      {
+        accessorKey: 'licenseNumber',
+        header: 'License Number',
+      },
+      {
+        accessorKey: 'score',
+        header: 'Score',
+      },
+      {
+        accessorKey: 'winner',
+        header: 'Winner',
+      },
+    ],[]
+  );
 
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}><CircularProgress /></div>;
-  }
-
-  if (error) {
-    return <Alert severity="error" style={{ margin: '20px 0' }}>{error}</Alert>;
-  }
-
-  if (participants.length === 0) {
-    return <Typography style={{ padding: '20px', textAlign: 'center' }}>No participants found for this tournament.</Typography>;
-  }
+  const table = useMaterialReactTable({
+    columns,
+    data: data,
+    initialState: { showColumnFilters: true },
+    muiToolbarAlertBannerProps: isError
+      ? {
+          color: 'error',
+          children: 'Error loading data',
+        }
+      : undefined,
+    state: {
+      isLoading,
+      showAlertBanner: isError,
+      showProgressBars: isRefetching,
+    },
+    renderTopToolbarCustomActions: () => (
+        <Box>
+        <Tooltip arrow title="Refresh Data">
+            <IconButton onClick={() => refetch()}>
+            <RefreshIcon />
+            </IconButton>
+        </Tooltip>
+        <Tooltip arrow title="Join">
+            <IconButton onClick={() =>console.log("create")}>
+            <AddIcon/>
+            </IconButton>
+        </Tooltip>
+        </Box>
+    ),
+    rowCount: meta?.totalCount ?? 0,
+  })
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="tournament participants table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Participant Name</TableCell>
-            <TableCell>License Number</TableCell>
-            <TableCell align="right">Score</TableCell>
-            <TableCell align="center">Winner</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {participants.map((item) => (
-            <TableRow key={item.participant.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">{item.user?.name || 'N/A'}</TableCell>
-              <TableCell>{item.participant.licenseNumber || 'N/A'}</TableCell>
-              <TableCell align="right">{item.participant.score ?? 'N/A'}</TableCell>
-              <TableCell align="center">{item.participant.winner === null ? 'N/A' : item.participant.winner ? 'Yes' : 'No'}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Box sx={{ width: '100%' }}>
+    <Typography component="h4">
+      Participants
+    </Typography>
+    {isError && <Alert severity="error">{error.message}</Alert>}
+    <MaterialReactTable table={table} />
+  </Box>
   );
 };
 

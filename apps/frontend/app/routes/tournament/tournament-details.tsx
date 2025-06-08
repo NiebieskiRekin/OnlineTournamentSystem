@@ -195,6 +195,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
               ></iframe>
           </Box>
         )} */}
+        <Divider sx={{ my: 2 }} />
 
         <TournamentParticipantsTable tournamentId={tournamentData.id} />
 

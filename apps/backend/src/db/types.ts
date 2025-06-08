@@ -62,7 +62,9 @@ const tournamentList = z.object({
     })
 })
 
-const participantSelectSchema = createSelectSchema(participant);
+const participantSelectSchema = createSelectSchema(participant).omit({
+    tournament: true,
+});
 type Participant = z.infer<typeof participantSelectSchema>;
 const participantUpdateSchema = createUpdateSchema(participant).required({
     tournament: true,

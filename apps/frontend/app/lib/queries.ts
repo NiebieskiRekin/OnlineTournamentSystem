@@ -6,6 +6,7 @@ import {z} from "zod";
 export const queryKeys = {
   LIST_TOURNAMENTS: { queryKey: ["list-tournaments"] },
   LIST_TOURNAMENT: (id: string) => ({ queryKey: [`list-tournament-${id}`] }),
+  LIST_PARTICIPANTS: (id: string) => ({ queryKey: [`list-participants-${id}`] }),
 };
 
 

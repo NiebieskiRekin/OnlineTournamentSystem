@@ -266,7 +266,12 @@ export const tournamentRoute = new Hono<auth_vars>()
     async (c) => {
       try {
         const id = Number.parseInt(c.req.param("id"));
-        const res = await db.select().from(participant).leftJoin(user,eq(participant.user,user.id)).where(eq(participant.tournament,id));
+        const res = await db.select({
+          user: user.name,
+          score: participant.score,
+          winner: participant.winner,
+          licenseNumber: participant.licenseNumber
+        }).from(participant).innerJoin(user,eq(participant.user,user.id)).where(eq(participant.tournament,id));
         const totalCountQuery = db.select({count: count()}).from(participant).where(eq(participant.tournament,id))
         const totalCount = (await totalCountQuery.then((res)=>res[0])).count;
         
