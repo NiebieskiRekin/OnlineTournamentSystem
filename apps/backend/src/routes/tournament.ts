@@ -13,6 +13,7 @@ import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
+import logger from "../lib/logger";
 
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
@@ -178,6 +179,7 @@ export const tournamentRoute = new Hono<auth_vars>()
       try {
         const id = Number.parseInt(c.req.param("id"));
 
+        logger.info("id ok")
         const result = await db
           .select({
             id: tournament.id,
@@ -190,12 +192,13 @@ export const tournamentRoute = new Hono<auth_vars>()
             applicationDeadline: tournament.applicationDeadline,
             location: tournament.location,
             sponsorLogos: tournament.sponsorLogos,
-
           })
           .from(tournament)
           .leftJoin(user,eq(tournament.organizer,user.id))
           .where(eq(tournament.id, id))
           .then((res) => res[0]);
+
+          logger.info("result", result)
 
         if (!result) {
           return c.json({error: "Not found"}, 404);
@@ -211,6 +214,8 @@ export const tournamentRoute = new Hono<auth_vars>()
           .innerJoin(tournament,eq(participant.tournament,tournament.id))
           .innerJoin(user,eq(participant.user,user.id)).
           where(eq(tournament.id,id));
+
+          logger.info("part", participants)
 
         return c.json({...result, participantsList: participants});
       } catch {
