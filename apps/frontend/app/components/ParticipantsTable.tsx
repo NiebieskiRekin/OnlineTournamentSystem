@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
   Typography,
   Alert,
   Box,
@@ -20,7 +12,7 @@ import {
   TextField,
 } from '@mui/material';
 import { useQuery, keepPreviousData, useMutation } from '@tanstack/react-query';
-import { participantInsertSchema, type Participant, type tournamentInsertSchema } from '@webdev-project/api-client';
+import { participantInsertSchema, type Participant } from '@webdev-project/api-client';
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
 import { queryKeys, parseError } from '~/lib/queries';
@@ -31,7 +23,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import queryClient from '~/lib/query-client';
 import {z} from "zod"
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 
 interface TournamentParticipantsTableProps {
   tournamentId: number;
@@ -136,8 +128,8 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         console.log("created");
       },
       onError: (error: Error) => {
-        console.error("Error leaving tournament:", error);
-        alert("Error leaving tournament:"+ error.message);
+        console.error("Error joining tournament:", error);
+        alert("Error joining tournament: "+ error.message);
       },
     });
 
@@ -167,14 +159,22 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
       defaultValues: {
         licenseNumber: '',
         score: 0,
-        winner: false
       },
     });
 
-
-    const onSubmit: SubmitHandler<ParticipantFormData> = async (formData: ParticipantFormData) => {
-        await createMutation.mutateAsync(formData);
-    };
+    // This is the core submission logic, called by react-hook-form's handleSubmit after validation.
+    // It handles the mutation, and on success, closes the dialog and resets the form.
+    const onSubmit: SubmitHandler<ParticipantFormData> = async (formData) => {
+        try {
+            await createMutation.mutateAsync(formData);
+            // createMutation.onSuccess handles query invalidation.
+            table.setCreatingRow(null); // Close the MRT dialog/creating state.
+            reset(); // Reset the RHF form to default values.
+        } catch (error) {
+            console.error("Error during form submission via onSubmit:", error);
+            alert("Error during form submission via onSubmit: "+ (error as Error).message);
+        }
+    }
 
   const table = useMaterialReactTable({
     columns,
@@ -190,6 +190,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
       isLoading,
       showAlertBanner: isError,
       showProgressBars: isRefetching,
+      isSaving: isSubmitting || createMutation.isPending
     },
     renderTopToolbarCustomActions: () => (
         <Box>
@@ -216,11 +217,16 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         }
         </Box>
     ),
+    onCreatingRowCancel: () => reset({
+      licenseNumber: '',
+      score: 0,
+    }),
+    onCreatingRowSave: () => handleSubmit(onSubmit)(),
     renderCreateRowDialogContent: ({table,row})=>(
      <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle variant="h3">Join tournament</DialogTitle>
+        <DialogTitle variant="h6">Join tournament</DialogTitle>
         <DialogContent
-          sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+          sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', margin: '10px'}}
         >
         <Controller
             name="licenseNumber"
@@ -233,7 +239,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
             name="score"
             control={control}
             render={({ field }) => (
-                <TextField  {...field} type="number" label="score" fullWidth error={!!errors.score} helperText={errors.score?.message} />
+                <TextField  {...field} type="number" label="score" fullWidth error={!!errors.score} helperText={errors.score?.message} onChange={e => field.onChange(parseInt(e.target.value) || null)}/>
             )}
         />
         {/* <Controller
@@ -245,7 +251,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         /> */}
         </DialogContent>
         <DialogActions>
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
+            <MRT_EditActionButtons variant="text" table={table} row={row}/>
         </DialogActions>
       </form>
     ),

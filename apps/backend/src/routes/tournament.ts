@@ -6,9 +6,7 @@ import {
   tournamentUpdateSchema,
   tournamentQueryParams,
   // tournamentList
-  participantInsertSchema,
-  participantSelectSchema,
-  participantUpdateSchema
+  participantInsertSchema
 } from "@/backend/db/types";
 import { participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
@@ -17,8 +15,6 @@ import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
 import logger from "../lib/logger";
-import { N } from "better-auth/dist/shared/better-auth.Bzjh9zg_";
-
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
