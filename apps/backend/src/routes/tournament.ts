@@ -6,6 +6,9 @@ import {
   tournamentUpdateSchema,
   tournamentQueryParams,
   // tournamentList
+  participantInsertSchema,
+  participantSelectSchema,
+  participantUpdateSchema
 } from "@/backend/db/types";
 import { participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
@@ -14,6 +17,7 @@ import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
 import logger from "../lib/logger";
+import { N } from "better-auth/dist/shared/better-auth.Bzjh9zg_";
 
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
@@ -256,4 +260,74 @@ export const tournamentRoute = new Hono<auth_vars>()
         return c.json({ error: "Błąd serwera" }, 500);
       }
     }
-  );
+  )
+  .get(
+    ":id{[0-9]+}/participant",
+    async (c) => {
+      try {
+        const id = Number.parseInt(c.req.param("id"));
+        const res = await db.select().from(participant).leftJoin(user,eq(participant.user,user.id)).where(eq(participant.tournament,id));
+        const totalCountQuery = db.select({count: count()}).from(participant).where(eq(participant.tournament,id))
+        const totalCount = (await totalCountQuery.then((res)=>res[0])).count;
+        
+        const response = {data: res, meta: {totalCount: totalCount}}
+        return c.json(response, 200);
+      } catch {
+        return c.json({ error: "Błąd serwera" }, 500);
+      }
+    }
+  )
+  .post(
+    ":id{[0-9]+}/participant",
+    zValidator("json", participantInsertSchema),
+    async (c) => {
+      try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        const req = c.req.valid("json");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+        const id = Number.parseInt(c.req.param("id"));
+        const tour = await db.select().from(tournament).where(eq(tournament.id,id)).then((res) => res[0]);
+        if (!tour){
+          return c.json({error: "Not found"}, 404);
+        }
+
+        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) > Date.now()){
+          return c.json({error: "Cannot apply to this tournament"}, 400);
+        }
+
+        const res = await db.insert(participant).values({...req, user: user_session.id, tournament: id}).returning().then((res) => res[0]);
+        return c.json(res, 200);
+      } catch {
+        return c.json({ error: "Błąd serwera" }, 500);
+      }
+    }
+  ).delete(
+    ":id{[0-9]+}/participant",
+    async (c) => {
+      try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+
+        const id = Number.parseInt(c.req.param("id"));
+        const tour = await db.select().from(tournament).where(eq(tournament.id,id)).then((res) => res[0]);
+        if (!tour){
+          return c.json({error: "Not found"}, 404);
+        }
+
+        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) > Date.now()){
+          return c.json({error: "Cannot leave this tournament"}, 400);
+        }
+
+        const res = await db.delete(participant).where(and(eq(participant.tournament,id), eq(participant.user,user_session.id))).returning().then((res) => res[0])
+        return c.json(res, 200);
+      } catch {
+        return c.json({ error: "Błąd serwera" }, 500);
+      }
+    }
+  )

@@ -68,7 +68,10 @@ const participantUpdateSchema = createUpdateSchema(participant).required({
     tournament: true,
     user: true,
 });
-const participantInsertSchema = createInsertSchema(participant);
+const participantInsertSchema = createInsertSchema(participant).omit({
+    tournament: true,
+    user: true
+});
 
 const matchSelectSchema = createSelectSchema(match);
 type Match = z.infer<typeof matchSelectSchema>;
