@@ -17,7 +17,7 @@ import {
   ImageList,
   ImageListItem,
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Image } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import {
     queryKeys,
     parseError,

@@ -27,14 +27,13 @@ import {
     parseError,
 } from "../../lib/queries"; // Adjust path as necessary
 import apiClient from '~/lib/api-client';
-import dayjs from 'dayjs';
 import { createAuthClient } from 'better-auth/react';
 
 const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
     discipline: true,
     time: true,
-    placeid: true,
+    location: true,
     maxParticipants: true,
     applicationDeadline: true,
     participants: true,
@@ -249,7 +248,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 render={({ field, fieldState }) => (
                   <DatePicker
                     {...field}
-                    value={dayjs(field.value)}
+                    value={field.value}
                     label="Time"
                     onChange={(date) => field.onChange(date)}
                     slotProps={{
@@ -271,7 +270,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 render={({ field, fieldState }) => (
                   <DatePicker
                     {...field}
-                    value={dayjs(field.value)}
+                    value={field.value}
                     label="Application deadline"
                     onChange={(date) => field.onChange(date)}
                     slotProps={{
