@@ -68,7 +68,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
       },
   });
 
-  const isOrganizer = session?.user?.id === tournamentData?.organizer
+  const isOrganizer = session?.user?.id === tournamentData?.organizerId
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
