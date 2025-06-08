@@ -67,7 +67,7 @@ export const tournament = pgTable("tournament", {
 	discipline: text("discipline").notNull(),
 	organizer: text("organizer").notNull().references(() => user.id, { onDelete: "cascade" }),
 	time: timestamp("time", {mode: "string", withTimezone: true}),
-	placeid: text("placeid"),
+	location: text("location"),
   participants: integer("participants").notNull().default(0),
 	maxParticipants: integer("max_participants").notNull().default(10),
 	applicationDeadline: timestamp("application_deadline", {mode: "string", withTimezone: true}),
@@ -91,4 +91,13 @@ export const participant = pgTable("participant", {
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
+  time: timestamp("time", {mode: "string", withTimezone: true}),
 });
+
+export const player = pgTable("player", {
+	match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
+	participant: text("user").notNull().references(()=>participant.user,{onDelete:"cascade"}),
+	score: integer("score"),
+	winner: boolean("winner"),
+}, (table) => [
+	primaryKey({ columns: [table.match, table.participant]})]);
