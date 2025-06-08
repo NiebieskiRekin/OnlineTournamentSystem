@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
@@ -12,7 +13,7 @@ import { participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
-import { asc, eq, count, or, like, sql, between, gt, and, desc, gte } from "drizzle-orm";
+import { asc, eq, count, or, like, sql, between, gt, and, gte, SQL } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
 import logger from "../lib/logger";
 import z from "zod";
@@ -55,8 +56,8 @@ export const tournamentRoute = new Hono<auth_vars>()
           }
         }
 
-        logger.info(JSON.stringify(columnFilters))
-        logger.info(JSON.stringify(sorting))
+        logger.info("filters" + JSON.stringify(columnFilters))
+        logger.info("sorting" + JSON.stringify(sorting))
 
 
         let query = db.select({
@@ -117,24 +118,49 @@ export const tournamentRoute = new Hono<auth_vars>()
               break;
         }})
 
+        const orderByConditions: SQL[] = []
         
-        if (whereConditions.length > 0){
-          totalCountQuery = totalCountQuery.where(and(...whereConditions));
-        }
-        const totalCount = (await totalCountQuery.then((res)=>res[0])).count;
+        sorting.forEach(sort => {
+          const orderby = sort.desc ? `DESC` : `ASC`
+          switch(sort.id){
+            case "id":
+              orderByConditions.push(sql.raw(`tournament.id ${orderby}`))
+              break;
+            case "name":
+              orderByConditions.push(sql.raw(`tournament.name ${orderby}`))
+              break;
+            case "discipline":
+              orderByConditions.push(sql.raw(`tournament.discipline ${orderby}`))
+              break;
+            case "organizer":
+              orderByConditions.push(sql.raw(`user.name ${orderby}`))
+              break;
+            case "time":
+              orderByConditions.push(sql.raw(`tournament.time ${orderby}`))
+              break;
+            case "maxParticipants":
+              orderByConditions.push(sql.raw(`tournament.max_participants ${orderby}`))
+              break;
+            case "applicationDeadline":
+              orderByConditions.push(sql.raw(`tournament.application_deadline ${orderby}`))
+              break;
+            default:
+              break;
+          }
+        })
 
-        const orderByConditions = sorting?.map(sort => {
-          const col = sql<string>`${sort.id}`;
-          return sort.desc ? desc(col) : asc(col)
-        }) ?? []
+        logger.info(orderByConditions);
 
-        if (orderByConditions.length === 0) {
+        if (sorting.length === 0) {
           orderByConditions.push(asc(tournament.id));
         }
 
         if (whereConditions.length > 0) {
           query = query.where(and(...whereConditions));
+          totalCountQuery = totalCountQuery.where(and(...whereConditions));
         }
+
+        const totalCount = (await totalCountQuery.then((res)=>res[0])).count;
 
         const res = await query
             .orderBy(...orderByConditions)
@@ -143,7 +169,8 @@ export const tournamentRoute = new Hono<auth_vars>()
         
         const response = {data: res, meta: {totalCount: totalCount, page: page, pageSize: limit}}
         return c.json(response, 200);
-      } catch {
+      } catch (e) {
+        logger.error(e)
         return c.json({ error: "Błąd serwera" }, 500);
       }
     }
