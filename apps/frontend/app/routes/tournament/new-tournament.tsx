@@ -182,10 +182,10 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
             </Grid>
             <Grid size={{xs: 12, sm: 6}}>
               <Controller
-                name="placeid"
+                name="location"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Place ID" fullWidth error={!!errors.placeid} helperText={errors.placeid?.message} />
+                  <TextField {...field} label="Location" fullWidth error={!!errors.location} helperText={errors.location?.message} />
                 )}
               />
             </Grid>
@@ -194,7 +194,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 name="sponsorLogos"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Sponsor logos" fullWidth error={!!errors.placeid} helperText={errors.placeid?.message} />
+                  <TextField {...field} label="Sponsor logos" fullWidth error={!!errors.sponsorLogos} helperText={errors.sponsorLogos?.message} />
                 )}
               />
             </Grid>

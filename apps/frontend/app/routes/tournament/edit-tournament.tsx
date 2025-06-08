@@ -82,7 +82,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       name: '',
       discipline: undefined,
       time: undefined,
-      placeid: '',
+      location: '',
       maxParticipants: 10,
       applicationDeadline: undefined,
       participants: 0,
@@ -96,7 +96,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
         name: tournamentData.name,
         discipline: tournamentData.discipline,
         time: tournamentData.time ? new Date(tournamentData.time) : undefined,
-        placeid: tournamentData.placeid,
+        location: tournamentData.location,
         maxParticipants: tournamentData.maxParticipants,
         applicationDeadline: tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline) : undefined,
         participants: tournamentData.participants,
@@ -288,10 +288,10 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
             </Grid>
             <Grid size={{xs: 12, sm: 6}}>
               <Controller
-                name="placeid"
+                name="location"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Place ID (e.g., Google Place ID)" fullWidth error={!!errors.placeid} helperText={errors.placeid?.message} />
+                  <TextField {...field} label="Location" fullWidth error={!!errors.location} helperText={errors.location?.message} />
                 )}
               />
             </Grid>

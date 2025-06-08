@@ -14,8 +14,10 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  ImageList,
+  ImageListItem,
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon, Image } from '@mui/icons-material';
 import {
     queryKeys,
     parseError,
@@ -23,6 +25,8 @@ import {
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
 import { useParams, Link as RouterLink } from 'react-router';
+import { sponsorLogos } from '@webdev-project/api-client';
+import {z} from "zod";
 
 interface TournamentDetailsPageProps {
   onClose?: () => void;
@@ -34,12 +38,13 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const { id } = useParams();
-  
+  const [parsedSponsorLogos, setParsedSponsorLogos] = useState<z.infer<typeof sponsorLogos>>([])
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError, refetch } = useQuery({
     queryKey: queryKeys.LIST_TOURNAMENT(id ?? "").queryKey,
     queryFn: async () => {
+        setParsedSponsorLogos([])
         console.log(id)
         const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
             param: {
@@ -52,6 +57,10 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
 
         if (response.status == 200){
             const result = await response.json();
+            const logos = await sponsorLogos.spa(result.sponsorLogos);
+            if (logos.success){
+              setParsedSponsorLogos(logos.data)
+            }
             return result;
           } else {
             throw Error("Something went wrong");
@@ -160,11 +169,10 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           <DetailItem label="Application Deadline" value={tournamentData.applicationDeadline ? new Date(tournamentData.applicationDeadline).toLocaleString() : 'N/A'} />
           <DetailItem label="Max Participants" value={tournamentData.maxParticipants} />
           <DetailItem label="Current Participants" value={tournamentData.participants ?? 0} />
-          <DetailItem label="Place ID" value={tournamentData.placeid} />
-          <DetailItem label="Sponsor Logos" value={tournamentData.sponsorLogos || 'None'} />
+          <DetailItem label="Location" value={tournamentData.location} />
         </Grid>
 
-        {tournamentData.placeid && (
+        {tournamentData.location && (
           <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom>
               Location
@@ -177,8 +185,26 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
                 loading="lazy"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=place_id:${tournamentData.placeid.trim()}`}
+                src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${tournamentData.location.trim()}`}
               ></iframe>
+          </Box>
+        )}
+
+        {(parsedSponsorLogos.length ?? 0) > 0 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Sponsors
+            </Typography>
+            <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+              {parsedSponsorLogos.map((logo) => (
+                <ImageListItem key={logo}>
+                  <img
+                    src={logo}
+                    loading='lazy'
+                  />
+                </ImageListItem>
+              ))}
+            </ImageList>
           </Box>
         )}
       </Paper>
