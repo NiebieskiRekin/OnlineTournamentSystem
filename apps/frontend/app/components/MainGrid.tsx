@@ -54,9 +54,9 @@ export default function MainGrid() {
     queryFn: async () => {
       const response = await apiClient.api.tournament.$get({
         query: {
-          columnFilters: JSON.stringify(columnFilters) ?? [],
+          columnFilters: JSON.stringify(columnFilters),
           globalFilter,
-          sorting: JSON.stringify(sorting) ?? [],
+          sorting: JSON.stringify(sorting),
           pageIndex: pagination.pageIndex.toString(),
           pageSize: pagination.pageSize.toString()
         }

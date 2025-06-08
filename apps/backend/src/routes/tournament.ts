@@ -2,11 +2,11 @@ import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
   tournamentInsertSchema,
-//   tournamentSelectSchema,
   tournamentUpdateSchema,
   tournamentQueryParams,
-  // tournamentList
-  participantInsertSchema
+  participantInsertSchema,
+  tournamentColumnFilters, 
+  tournamentSorting
 } from "@/backend/db/types";
 import { participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
@@ -15,6 +15,7 @@ import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
 import logger from "../lib/logger";
+import z from "zod";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
@@ -27,12 +28,27 @@ export const tournamentRoute = new Hono<auth_vars>()
     ),
     async (c) => {
       try {
-        const {pageIndex,pageSize,columnFilters,sorting,globalFilter,participant: participantId} = c.req.valid("query")
+        const {pageIndex,pageSize,columnFilters: columnFiltersRaw,sorting: sortingRaw,globalFilter,participant: participantId} = c.req.valid("query")
         const page = pageIndex || 0
         const limit = pageSize || 20
         const offset = page * limit
-
       
+        let columnFilters: z.infer<typeof tournamentColumnFilters> = []
+        if (columnFiltersRaw){
+          const temp = await tournamentColumnFilters.spa(JSON.parse(columnFiltersRaw))
+          if (temp.success){
+            columnFilters = temp.data
+          }
+        }
+
+        let sorting: z.infer<typeof tournamentSorting> = []
+        if (sortingRaw){
+          const temp = await tournamentSorting.spa(JSON.parse(sortingRaw))
+          if (temp.success){
+            sorting = temp.data
+          }
+        }
+
         const query = db.select({
           id: tournament.id,
           name: tournament.name,
@@ -58,7 +74,7 @@ export const tournamentRoute = new Hono<auth_vars>()
               or(
                   like(sql<string>`lower(${tournament.name})`, searchTerm),
                   like(sql<string>`lower(${tournament.discipline})`, searchTerm),
-                  // like(sql<string>`lower(${user.name})`, searchTerm),
+                  like(sql<string>`lower(${user.name})`, searchTerm),
               )
           );
         }

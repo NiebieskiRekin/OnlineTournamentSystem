@@ -33,24 +33,8 @@ const tournamentSorting = z.array(sorting.extend({id: tournamentColumns})).defau
 const tournamentQueryParams = z.object({
     pageIndex: z.number({coerce: true}).default(0),
     pageSize: z.number({coerce: true}).default(20),
-    columnFilters: z.string().refine((val)=>{
-        try{
-            console.log("val: ", val)
-            tournamentColumnFilters.parse(JSON.parse(val))
-            return true
-        } catch(e: unknown) {
-            console.log("val: ",e)
-            return false
-        }
-    }).transform((val)=>tournamentColumnFilters.parse(JSON.parse(val))),
-    sorting: z.string().refine((val)=>{
-        try{
-            tournamentSorting.parse(JSON.parse(val))
-            return true
-        } catch {
-            return false
-        }
-    }).transform((val)=>tournamentSorting.parse(JSON.parse(val))),
+    columnFilters: z.string(),
+    sorting: z.string(),
     globalFilter: z.string(),
     participant: z.string(),
 }).partial()
@@ -94,5 +78,6 @@ export {
     tournamentSelectSchema, tournamentUpdateSchema, tournamentInsertSchema, type Tournament, tournamentQueryParams, tournamentList,
     participantSelectSchema, participantUpdateSchema, participantInsertSchema, type Participant,
     matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
-    basicErrorSchema, sorting, sponsorLogos
+    basicErrorSchema, sorting, sponsorLogos,
+    tournamentColumnFilters, tournamentSorting
 };
