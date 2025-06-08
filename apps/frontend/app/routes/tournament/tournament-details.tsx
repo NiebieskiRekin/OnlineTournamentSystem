@@ -17,7 +17,7 @@ import {
   ImageList,
   ImageListItem,
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon, RequestPageOutlined } from '@mui/icons-material';
 import {
     queryKeys,
     parseError,
@@ -57,9 +57,13 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
 
         if (response.status == 200){
             const result = await response.json();
-            const logos = await sponsorLogos.spa(result.sponsorLogos);
-            if (logos.success){
-              setParsedSponsorLogos(logos.data)
+            if (result.sponsorLogos){
+              const logos = await sponsorLogos.spa(JSON.parse(result.sponsorLogos));
+              if (logos.success){
+                setParsedSponsorLogos(logos.data)
+              } else {
+                alert(logos.error)
+              }
             }
             return result;
           } else {
