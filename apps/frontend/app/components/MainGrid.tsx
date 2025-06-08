@@ -174,7 +174,7 @@ export default function MainGrid() {
       <MenuItem key="details" onClick={() => navigate(`/tournament/${row.original.id}`)} disabled={isLoading}>
         Details
       </MenuItem>,
-      <MenuItem key='edit' onClick={()=>navigate(`/tournament/${row.original.id}/edit`)} disabled={isLoading || session?.user?.id ? session!.user.id === row.original.organizer : true}>
+      <MenuItem key='edit' onClick={()=>navigate(`/tournament/${row.original.id}/edit`)} disabled={isLoading || (!session) || (session.user.id !== data[row.index].organizerId)}>
         Edit
       </MenuItem>
     ],

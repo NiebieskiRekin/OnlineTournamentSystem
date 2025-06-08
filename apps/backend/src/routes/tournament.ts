@@ -39,6 +39,7 @@ export const tournamentRoute = new Hono<auth_vars>()
           name: tournament.name,
           discipline: tournament.discipline,
           organizer: user.name,
+          organizerId: user.id,
           time: tournament.time,
           maxParticipants: tournament.maxParticipants,
           applicationDeadline: tournament.applicationDeadline,
