@@ -51,7 +51,8 @@ const tournamentQueryParams = z.object({
             return false
         }
     }).transform((val)=>tournamentSorting.parse(JSON.parse(val))),
-    globalFilter: z.string()
+    globalFilter: z.string(),
+    participant: z.string(),
 }).partial()
 const tournamentList = z.object({
     data: z.array(tournamentSelectSchema),

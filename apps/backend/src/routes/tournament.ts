@@ -27,8 +27,7 @@ export const tournamentRoute = new Hono<auth_vars>()
     ),
     async (c) => {
       try {
-        const queryParams = c.req.query()
-        const {pageIndex,pageSize,columnFilters,sorting,globalFilter} = tournamentQueryParams.parse(queryParams)
+        const {pageIndex,pageSize,columnFilters,sorting,globalFilter,participant: participantId} = c.req.valid("query")
         const page = pageIndex || 0
         const limit = pageSize || 20
         const offset = page * limit
@@ -46,6 +45,11 @@ export const tournamentRoute = new Hono<auth_vars>()
         }).from(tournament)
         .leftJoin(user,eq(tournament.organizer,user.id))
         .$dynamic();
+
+        if (participantId){
+          query.leftJoin(participant,eq(participant.tournament,tournament.id)).where(eq(participant.user,participantId))
+        }
+
         const whereConditions = [];
 
         if (globalFilter){
