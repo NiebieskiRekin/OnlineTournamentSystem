@@ -43,7 +43,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
     refetch,
   } = useQuery({
     queryKey: [
-      queryKeys.LIST_PARTICIPANTS(tournamentId.toString())
+      queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey
     ],
     queryFn: async () => {
       const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$get({
@@ -90,7 +90,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+      await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey);
     },
     onError: (error: Error) => {
       console.error("Error leaving tournament:", error);
@@ -118,14 +118,14 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
   
           if (response.status == 200){
               const result = await response.json();
+              console.log(result)
               return result;
           } else {
               throw Error("Something went wrong");
           }
       },
       onSuccess: async () => {
-        await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
-        console.log("created");
+        await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey);
       },
       onError: (error: Error) => {
         console.error("Error joining tournament:", error);
