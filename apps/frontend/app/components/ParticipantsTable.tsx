@@ -13,40 +13,21 @@ import {
   Box,
   IconButton,
   Tooltip,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import type { Participant } from '@webdev-project/api-client';
+import { useQuery, keepPreviousData, useMutation } from '@tanstack/react-query';
+import type { Participant, participantInsertSchema, tournamentInsertSchema } from '@webdev-project/api-client';
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
 import { queryKeys, parseError } from '~/lib/queries';
-import { MaterialReactTable, useMaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
+import { MaterialReactTable, MRT_EditActionButtons, useMaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from '@mui/icons-material/Add';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-
-// This interface defines the structure of individual items in the 'data' array
-// returned by your /tournament/:id/participant endpoint.
-interface ParticipantEntry {
-  participant: {
-    id: number; // Assuming 'id' is the primary key of the participant entry
-    score: number | null;
-    winner: boolean | null;
-    licenseNumber: string | null;
-    // Add other fields from the 'participant' table if needed
-  };
-  user: {
-    name: string | null;
-    // Add other fields from the 'user' table if needed (e.g., user.id)
-  };
-}
-
-// This interface defines the overall structure of the API response.
-interface ParticipantsApiResponse {
-  data: ParticipantEntry[];
-  meta: {
-    totalCount: number;
-  };
-}
+import queryClient from '~/lib/query-client';
+import {z} from "zod"
 
 interface TournamentParticipantsTableProps {
   tournamentId: number;
@@ -90,7 +71,73 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
 
   const isParticipating = data.find((p)=>p.id == session?.user.id)
 
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+        const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$delete({
+            param: {
+                id: id
+            }
+        });
+    
+        if (!response.ok){
+            parseError(response)
+        }
+
+        if (response.status == 200){
+            const result = await response.json();
+            return result;
+        } else {
+            throw Error("Something went wrong");
+        }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+    },
+    onError: (error: Error) => {
+      console.error("Error leaving tournament:", error);
+      alert("Error leaving tournament:"+ error.message);
+    },
+  });
+
+  const handleDelete = () => {
+    deleteMutation.mutate(tournamentId.toString());
+  };
+
+
+    const createMutation = useMutation({
+      mutationFn: async (id: string,  payload: z.infer<typeof participantInsertSchema>) => {
+          const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$post({
+              param: {
+                  id: id
+              },
+              json: payload
+          });
+      
+          if (!response.ok){
+              parseError(response)
+          }
   
+          if (response.status == 200){
+              const result = await response.json();
+              return result;
+          } else {
+              throw Error("Something went wrong");
+          }
+      },
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+        console.log("created");
+      },
+      onError: (error: Error) => {
+        console.error("Error leaving tournament:", error);
+        alert("Error leaving tournament:"+ error.message);
+      },
+    });
+  
+    const handleCreate = () => {
+        deleteMutation.mutate(tournamentId.toString(),{});
+    };
 
   const columns = useMemo<MRT_ColumnDef<Participant>[]>(
     () => [
@@ -137,22 +184,34 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         </Tooltip>
         { isParticipating ? (
          <Tooltip arrow title={"Leave"}>
-            <IconButton onClick={() =>console.log("leave")}>
+            <IconButton onClick={() =>handleDelete()}>
                 <ExitToAppIcon/>
             </IconButton>
          </Tooltip>
         )
          : (
-            <Tooltip arrow title={"Leave"}>
-            <IconButton onClick={() =>console.log("leave")}>
+            <Tooltip arrow title={"Join"}>
+            <IconButton onClick={() =>table.setCreatingRow(true)}>
                 <AddIcon/>
             </IconButton>
             </Tooltip>
          )
 
         }
-        
         </Box>
+    ),
+    renderCreateRowDialogContent: ({table,row,internalEditComponents})=>(
+     <>
+        <DialogTitle variant="h3">Join tournament</DialogTitle>
+        <DialogContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+        >
+          {internalEditComponents}
+        </DialogContent>
+        <DialogActions>
+          <MRT_EditActionButtons variant="text" table={table} row={row} />
+        </DialogActions>
+      </>
     ),
     rowCount: meta?.totalCount ?? 0,
   })
