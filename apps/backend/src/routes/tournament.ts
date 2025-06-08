@@ -296,7 +296,7 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Not found"}, 404);
         }
 
-        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) > Date.now()){
+        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) < Date.now()){
           return c.json({error: "Cannot apply to this tournament"}, 400);
         }
 
@@ -325,7 +325,7 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Not found"}, 404);
         }
 
-        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) > Date.now()){
+        if (tour.applicationDeadline != null && Date.parse(tour.applicationDeadline) < Date.now()){
           return c.json({error: "Cannot leave this tournament"}, 400);
         }
 
