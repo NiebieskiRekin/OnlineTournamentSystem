@@ -63,7 +63,8 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
             json: payload
         });
         if (!response.ok){
-            parseError(response)
+            const result = await response.json();
+            parseError(result)
         }
 
         if (response.status == 200){

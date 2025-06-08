@@ -54,7 +54,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
             }
         })
         if (!response.ok){
-            parseError(response)
+          const result = await response.json();
+          parseError(result)
         }
 
         if (response.status == 200){
@@ -85,7 +86,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
         });
     
         if (!response.ok){
-            parseError(response)
+          const result = await response.json();
+          parseError(result)
         }
 
         if (response.status == 200){

@@ -63,7 +63,8 @@ export default function MainGrid() {
       });
   
       if (!response.ok){
-          parseError(response)
+        const result = await response.json();
+        parseError(result)
       }
   
       if (response.ok){

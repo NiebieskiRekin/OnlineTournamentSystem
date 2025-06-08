@@ -126,6 +126,10 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         const req = c.req.valid("json");
 
+        if (req.time < new Date() || req.applicationDeadline != null && req.applicationDeadline < new Date()){
+          return c.json({error: "Cannot host a tournament in the past"}, 400);
+        }
+
         const result = await db
           .insert(tournament)
           .values({...req, organizer: user_session.id, time: req.time.toDateString(), applicationDeadline: req.applicationDeadline?.toDateString()})

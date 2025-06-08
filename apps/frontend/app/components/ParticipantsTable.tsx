@@ -55,7 +55,8 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
       });
   
       if (!response.ok){
-          parseError(response)
+        const result = await response.json();
+        parseError(result)
       }
   
       if (response.ok){
@@ -81,7 +82,8 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         });
     
         if (!response.ok){
-            parseError(response)
+            const result = await response.json();
+            parseError(result)
         }
 
         if (response.status == 200){
@@ -115,7 +117,8 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
           });
       
           if (!response.ok){
-              parseError(response)
+            const result = await response.json();
+            parseError(result)
           }
   
           if (response.status == 200){
@@ -269,7 +272,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
   return (
     <Box sx={{ width: '100%' }}>
     <Typography component="h4">
-      Participants {`(${data.length} / ${meta?.maxParticipants ?? '♾️'})`}
+      Participants {`(${data.length} / ${meta?.maxParticipants ?? '∞'})`}
     </Typography>
     {isError && <Alert severity="error">{error.message}</Alert>}
     <MaterialReactTable table={table} />
