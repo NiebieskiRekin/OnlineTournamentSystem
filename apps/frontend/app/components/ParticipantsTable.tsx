@@ -22,6 +22,7 @@ import { queryKeys, parseError } from '~/lib/queries';
 import { MaterialReactTable, useMaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from '@mui/icons-material/Add';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 // This interface defines the structure of individual items in the 'data' array
 // returned by your /tournament/:id/participant endpoint.
@@ -87,6 +88,10 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
     throwOnError: (error) => error.response?.status >= 500,
   });
 
+  const isParticipating = data.find((p)=>p.id == session?.user.id)
+
+  
+
   const columns = useMemo<MRT_ColumnDef<Participant>[]>(
     () => [
         {
@@ -130,11 +135,23 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
             <RefreshIcon />
             </IconButton>
         </Tooltip>
-        <Tooltip arrow title="Join">
-            <IconButton onClick={() =>console.log("create")}>
-            <AddIcon/>
+        { isParticipating ? (
+         <Tooltip arrow title={"Leave"}>
+            <IconButton onClick={() =>console.log("leave")}>
+                <ExitToAppIcon/>
             </IconButton>
-        </Tooltip>
+         </Tooltip>
+        )
+         : (
+            <Tooltip arrow title={"Leave"}>
+            <IconButton onClick={() =>console.log("leave")}>
+                <AddIcon/>
+            </IconButton>
+            </Tooltip>
+         )
+
+        }
+        
         </Box>
     ),
     rowCount: meta?.totalCount ?? 0,

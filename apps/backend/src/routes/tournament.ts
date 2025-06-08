@@ -268,6 +268,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         const id = Number.parseInt(c.req.param("id"));
         const res = await db.select({
           user: user.name,
+          id: user.id,
           score: participant.score,
           winner: participant.winner,
           licenseNumber: participant.licenseNumber
