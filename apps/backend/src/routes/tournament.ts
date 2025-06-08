@@ -12,7 +12,7 @@ import { participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
-import { asc, eq, count, or, like, sql, between, gt, and, desc } from "drizzle-orm";
+import { asc, eq, count, or, like, sql, between, gt, and, desc, gte } from "drizzle-orm";
 import { addHours } from "../lib/date-utils";
 import logger from "../lib/logger";
 import z from "zod";
@@ -35,21 +35,31 @@ export const tournamentRoute = new Hono<auth_vars>()
       
         let columnFilters: z.infer<typeof tournamentColumnFilters> = []
         if (columnFiltersRaw){
-          const temp = await tournamentColumnFilters.spa(JSON.parse(columnFiltersRaw))
+          const temp = await tournamentColumnFilters.spa(columnFiltersRaw)
           if (temp.success){
             columnFilters = temp.data
+          } else {
+            logger.error(temp.error)
           }
         }
 
         let sorting: z.infer<typeof tournamentSorting> = []
         if (sortingRaw){
-          const temp = await tournamentSorting.spa(JSON.parse(sortingRaw))
+          const temp1 = sortingRaw
+          logger.info(temp1)
+          const temp = await tournamentSorting.spa(temp1)
           if (temp.success){
             sorting = temp.data
+          } else {
+            logger.error(temp.error)
           }
         }
 
-        const query = db.select({
+        logger.info(JSON.stringify(columnFilters))
+        logger.info(JSON.stringify(sorting))
+
+
+        let query = db.select({
           id: tournament.id,
           name: tournament.name,
           discipline: tournament.discipline,
@@ -62,8 +72,11 @@ export const tournamentRoute = new Hono<auth_vars>()
         .leftJoin(user,eq(tournament.organizer,user.id))
         .$dynamic();
 
+        let totalCountQuery = db.select({count: count()}).from(tournament).leftJoin(user,eq(tournament.organizer,user.id)).$dynamic()
+
         if (participantId){
           query.leftJoin(participant,eq(participant.tournament,tournament.id)).where(eq(participant.user,participantId))
+          totalCountQuery.leftJoin(participant,eq(participant.tournament,tournament.id)).where(eq(participant.user,participantId))
         }
 
         const whereConditions = [];
@@ -80,30 +93,31 @@ export const tournamentRoute = new Hono<auth_vars>()
         }
 
         columnFilters?.forEach((val)=>{
-            if (val.id){
-              whereConditions.push(eq(tournament.id, val.id))
-            }
-            if (val.name){
-              whereConditions.push(like(tournament.name, `%${val.name}%`))
-            }
-            if (val.discipline){
-              whereConditions.push(like(tournament.discipline, `%${val.discipline}%`))
-            }
-            if (val.time){
-              whereConditions.push(between(tournament.time, addHours(val.time, -1).toDateString(), addHours(val.time, 1).toDateString()))
-            }
-            if (val.applicationDeadline){
-              whereConditions.push(gt(tournament.applicationDeadline, val.applicationDeadline.toDateString()))
-            }
-            if (val.maxParticipants){
-              whereConditions.push(gt(tournament.maxParticipants, val.maxParticipants))
-            }
-            if (val.organizer){
-              whereConditions.push(like(user.name, `%${val.organizer}%`))
-            }
-        })
+          switch(val.id){
+            case "id":
+              whereConditions.push(eq(tournament.id, val.value as number))
+              break;
+            case "name":
+              whereConditions.push(like(tournament.name, `%${val.value}%`))
+              break;
+            case "discipline":
+              whereConditions.push(like(tournament.discipline, `%${val.value}%`))
+              break;
+            case "organizer":
+              whereConditions.push(like(user.name, `%${val.value}%`))
+              break;
+            case "time":
+              whereConditions.push(between(tournament.time, addHours(val.value as string, -1), addHours(val.value as string, 1)))
+              break;
+            case "maxParticipants":
+              whereConditions.push(gte(tournament.maxParticipants, val.value as number))
+              break;
+            case "applicationDeadline":
+              whereConditions.push(gt(tournament.applicationDeadline, (val.value as string)))
+              break;
+        }})
 
-        let totalCountQuery = db.select({count: count()}).from(tournament).$dynamic()
+        
         if (whereConditions.length > 0){
           totalCountQuery = totalCountQuery.where(and(...whereConditions));
         }
@@ -119,7 +133,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         }
 
         if (whereConditions.length > 0) {
-          query.where(and(...whereConditions));
+          query = query.where(and(...whereConditions));
         }
 
         const res = await query
