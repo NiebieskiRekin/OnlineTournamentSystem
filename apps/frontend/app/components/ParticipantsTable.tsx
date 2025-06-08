@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Table,
@@ -16,9 +17,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from '@mui/material';
 import { useQuery, keepPreviousData, useMutation } from '@tanstack/react-query';
-import type { Participant, participantInsertSchema, tournamentInsertSchema } from '@webdev-project/api-client';
+import { participantInsertSchema, type Participant, type tournamentInsertSchema } from '@webdev-project/api-client';
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
 import { queryKeys, parseError } from '~/lib/queries';
@@ -28,10 +30,14 @@ import AddIcon from '@mui/icons-material/Add';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import queryClient from '~/lib/query-client';
 import {z} from "zod"
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
 
 interface TournamentParticipantsTableProps {
   tournamentId: number;
 }
+
+type ParticipantFormData = z.infer<typeof participantInsertSchema>;
 
 const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = ({ tournamentId }) => {
   const { data: session } = authClient.useSession();
@@ -106,10 +112,10 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
 
 
     const createMutation = useMutation({
-      mutationFn: async (id: string,  payload: z.infer<typeof participantInsertSchema>) => {
+      mutationFn: async (payload: ParticipantFormData) => {
           const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$post({
               param: {
-                  id: id
+                  id: tournamentId.toString()
               },
               json: payload
           });
@@ -134,10 +140,6 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         alert("Error leaving tournament:"+ error.message);
       },
     });
-  
-    const handleCreate = () => {
-        deleteMutation.mutate(tournamentId.toString(),{});
-    };
 
   const columns = useMemo<MRT_ColumnDef<Participant>[]>(
     () => [
@@ -159,6 +161,20 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
       },
     ],[]
   );
+
+    const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ParticipantFormData>({
+      resolver: zodResolver(participantInsertSchema),
+      defaultValues: {
+        licenseNumber: '',
+        score: 0,
+        winner: false
+      },
+    });
+
+
+    const onSubmit: SubmitHandler<ParticipantFormData> = async (formData: ParticipantFormData) => {
+        await createMutation.mutateAsync(formData);
+    };
 
   const table = useMaterialReactTable({
     columns,
@@ -200,18 +216,38 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         }
         </Box>
     ),
-    renderCreateRowDialogContent: ({table,row,internalEditComponents})=>(
-     <>
+    renderCreateRowDialogContent: ({table,row})=>(
+     <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle variant="h3">Join tournament</DialogTitle>
         <DialogContent
           sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
         >
-          {internalEditComponents}
+        <Controller
+            name="licenseNumber"
+            control={control}
+            render={({ field }) => (
+                <TextField {...field} label="License Number" fullWidth error={!!errors.licenseNumber} helperText={errors.licenseNumber?.message} />
+            )}
+            />
+        <Controller
+            name="score"
+            control={control}
+            render={({ field }) => (
+                <TextField  {...field} type="number" label="score" fullWidth error={!!errors.score} helperText={errors.score?.message} />
+            )}
+        />
+        {/* <Controller
+            name="winner"
+            control={control}
+            render={({ field }) => (
+                <TextField {...field} label="Winner" fullWidth error={!!errors.winner} helperText={errors.winner?.message} />
+            )}
+        /> */}
         </DialogContent>
         <DialogActions>
           <MRT_EditActionButtons variant="text" table={table} row={row} />
         </DialogActions>
-      </>
+      </form>
     ),
     rowCount: meta?.totalCount ?? 0,
   })

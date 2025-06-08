@@ -74,7 +74,8 @@ const participantUpdateSchema = createUpdateSchema(participant).required({
 });
 const participantInsertSchema = createInsertSchema(participant).omit({
     tournament: true,
-    user: true
+    user: true,
+    winner: true
 });
 
 const matchSelectSchema = createSelectSchema(match);

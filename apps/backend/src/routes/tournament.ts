@@ -304,8 +304,11 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Cannot apply to this tournament"}, 400);
         }
 
-        const res = await db.insert(participant).values({...req, user: user_session.id, tournament: id}).returning().then((res) => res[0]);
-        return c.json(res, 200);
+        const res = await db.insert(participant).values({...req, user: user_session.id, tournament: id, winner: false}).returning().then((res) => res[0]);
+        return c.json({
+          score: res.score,
+          licenseNumber: res.licenseNumber
+        }, 200);
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }
