@@ -5,8 +5,11 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Header from '~/components/Header';
 import MainGrid from '~/components/MainGrid';
+import { useSearchParams } from 'react-router';
 
 export default function Dashboard() {
+  const [search, ] = useSearchParams();
+
   return (
     <Box
     component="main"
@@ -28,7 +31,7 @@ export default function Dashboard() {
       }}
     >
       <Header />
-      <MainGrid />
+      <MainGrid participant={search.get("participant")}/>
     </Stack>
   </Box>
   );

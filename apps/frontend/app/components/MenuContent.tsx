@@ -7,18 +7,15 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import AnalyticsRoundedIcon from '@mui/icons-material/AnalyticsRounded';
-import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
-import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
-import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
+// import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
+// import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
+// import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+// import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
+// import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
 import { useNavigate } from 'react-router';
+import { authClient } from '~/lib/auth';
 
-const mainListItems = [
-  { text: 'Home', icon: <HomeRoundedIcon />, link: "/" },
-  { text: 'My Tournaments', icon: <AnalyticsRoundedIcon />, link: '/tournament/mine' },
-  // { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
-];
+
 
 const secondaryListItems = [
   // { text: 'Settings', icon: <SettingsRoundedIcon /> },
@@ -28,6 +25,13 @@ const secondaryListItems = [
 
 export default function MenuContent() {
   const navigate = useNavigate();
+  const session = authClient.useSession()
+
+  const mainListItems = [
+    { text: 'Home', icon: <HomeRoundedIcon />, link: "/" },
+    { text: 'My Tournaments', icon: <AnalyticsRoundedIcon />, link: `/?participant=${session.data?.user.id}` },
+    // { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
+  ];
 
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: 'space-between' }}>

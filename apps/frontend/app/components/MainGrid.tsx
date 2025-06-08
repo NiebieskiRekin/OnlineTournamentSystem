@@ -23,7 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router';
 import { authClient } from '~/lib/auth';
 
-export default function MainGrid() {
+export default function MainGrid({participant} : {participant: string|null}) {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
   const [globalFilter, setGlobalFilter] = useState('');
   const [sorting, setSorting] = useState<MRT_SortingState>([]);
@@ -43,7 +43,7 @@ export default function MainGrid() {
     refetch,
   } = useQuery({
     queryKey: [
-      queryKeys.LIST_TOURNAMENTS,
+      participant ? queryKeys.LIST_TOURNAMENTS_FOR_USER(participant) : queryKeys.LIST_TOURNAMENTS,
       {
         columnFilters,
         globalFilter,
@@ -58,7 +58,8 @@ export default function MainGrid() {
           globalFilter,
           sorting: JSON.stringify(sorting),
           pageIndex: pagination.pageIndex.toString(),
-          pageSize: pagination.pageSize.toString()
+          pageSize: pagination.pageSize.toString(),
+          participant: participant ?? undefined
         }
       });
   
@@ -183,7 +184,7 @@ export default function MainGrid() {
   return (
     <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Upcoming tournaments
+        Upcoming tournaments { participant ? 'for me' : ''}
       </Typography>
       {isError && <Alert severity="error">{error.message}</Alert>}
       <MaterialReactTable table={table} />
