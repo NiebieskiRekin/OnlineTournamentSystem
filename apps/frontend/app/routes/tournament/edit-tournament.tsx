@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,13 +13,8 @@ import {
   Box,
   CircularProgress,
   Grid,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
 } from '@mui/material';
-import { Delete as DeleteIcon, Save as SaveIcon, Add as AddIcon } from '@mui/icons-material';
+import { Save as SaveIcon } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { tournamentInsertSchema, tournamentUpdateSchema, type Tournament } from '@webdev-project/api-client';
 import {
@@ -27,7 +22,8 @@ import {
     parseError,
 } from "../../lib/queries"; // Adjust path as necessary
 import apiClient from '~/lib/api-client';
-import { createAuthClient } from 'better-auth/react';
+import { useParams } from 'react-router';
+import dayjs from 'dayjs';
 
 const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
@@ -42,23 +38,19 @@ const formValidationSchema = tournamentInsertSchema.pick({
 type TournamentFormData = z.infer<typeof formValidationSchema>;
 
 interface TournamentFormPageProps {
-  tournamentId?: string;
   onClose?: () => void;
 }
 
-const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, onClose }) => {
+const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
   const queryClient = useQueryClient();
-  const { useSession } = createAuthClient();
-  const isEditMode = false;
-
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const { id } = useParams();
 
   const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError } = useQuery({
-    queryKey: queryKeys.LIST_TOURNAMENT(tournamentId ?? "").queryKey,
+    queryKey: queryKeys.LIST_TOURNAMENT(id ?? "").queryKey,
     queryFn: async () => {
         const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
             param: {
-                id: tournamentId ?? ""
+                id: id ?? ""
             }
         })
         if (!response.ok){
@@ -72,7 +64,6 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
             throw Error("Something went wrong");
           }
       },
-    enabled: isEditMode, 
   });
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<TournamentFormData>({
@@ -90,7 +81,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
   });
 
   useEffect(() => {
-    if (isEditMode && tournamentData) {
+    if (tournamentData) {
       const formData: Partial<TournamentFormData> = {
         name: tournamentData.name,
         discipline: tournamentData.discipline,
@@ -103,7 +94,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
       };
       reset(formData);
     }
-  }, [tournamentData, isEditMode, reset]);
+  }, [tournamentData, reset]);
 
   const updateMutation = useMutation({
     mutationFn: async (tournament: z.infer<typeof tournamentUpdateSchema>) => {
@@ -137,41 +128,8 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-        const response = await apiClient.api.tournament[':id{[0-9]+}'].$delete({
-            param: {
-                id: id
-            }
-        });
-    
-        if (!response.ok){
-            parseError(response)
-        }
-
-        if (response.status == 200){
-            const result = await response.json();
-            return result;
-        } else {
-            throw Error("Something went wrong");
-        }
-    },
-    onSuccess: async () => {
-    await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
-    if (tournamentId) {
-        queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(tournamentId.toString()));
-    } 
-      setOpenDeleteDialog(false);
-      onClose?.();
-    },
-    onError: (error: Error) => {
-      console.error("Error deleting tournament:", error);
-      setOpenDeleteDialog(false);
-    },
-  });
-
   const onSubmit: SubmitHandler<TournamentFormData> = async (formData) => {
-    if (isEditMode && tournamentData) {
+    if (tournamentData) {
       const payload: z.infer<typeof tournamentUpdateSchema> = {
         id: tournamentData.id,
         ...formData
@@ -180,29 +138,16 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
     }
   };
 
-  const handleDelete = () => {
-    if (tournamentId) {
-      deleteMutation.mutate(tournamentId);
-    }
-  };
-
-  if (isEditMode && isLoadingTournament) return <CircularProgress />;
+  if (isLoadingTournament) return <CircularProgress />;
   if (fetchError) return <Typography color="error">Error loading tournament: {fetchError.message}</Typography>;
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
         <Typography variant="h4" gutterBottom>
-          {isEditMode ? 'Edit Tournament' : 'Create New Tournament'}
+          {'Edit Tournament'}
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2}>
-            {isEditMode && tournamentData?.organizer && (
-              <Grid size={{xs: 12}}>
-                <Typography component="div" variant="body1" gutterBottom sx={{ mb: 1 }}>
-                  <strong>Organizer ID:</strong> {tournamentData.organizer}
-                </Typography>
-              </Grid>
-            )}
             <Grid size={{xs: 12}}>
               <Controller
                 name="name"
@@ -248,7 +193,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 render={({ field, fieldState }) => (
                   <DatePicker
                     {...field}
-                    value={field.value}
+                    value={dayjs(field.value)}
                     label="Time"
                     onChange={(date) => field.onChange(date)}
                     slotProps={{
@@ -270,7 +215,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 render={({ field, fieldState }) => (
                   <DatePicker
                     {...field}
-                    value={field.value}
+                    value={dayjs(field.value)}
                     label="Application deadline"
                     onChange={(date) => field.onChange(date)}
                     slotProps={{
@@ -294,6 +239,15 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
                 )}
               />
             </Grid>
+            <Grid size={{xs: 12, sm: 6}}>
+              <Controller
+                name="sponsorLogos"
+                control={control}
+                render={({ field }) => (
+                  <TextField {...field} label="Sponsor logos" fullWidth error={!!errors.sponsorLogos} helperText={errors.sponsorLogos?.message} />
+                )}
+              />
+            </Grid>
           </Grid>
 
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
@@ -302,41 +256,13 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
               variant="contained"
               color="primary"
               disabled={isSubmitting || updateMutation.isPending}
-              startIcon={isSubmitting ? <CircularProgress size={20} /> : (isEditMode ? <SaveIcon /> : <AddIcon />) }
+              startIcon={isSubmitting ? <CircularProgress size={20} /> : <SaveIcon /> }
             >
-              {isEditMode ? 'Save Changes' : 'Create Tournament'}
+              {'Save Changes'}
             </Button>
-            {isEditMode && (
-              <Button
-                variant="outlined"
-                color="error"
-                disabled={deleteMutation.isPending}
-                onClick={() => setOpenDeleteDialog(true)}
-                startIcon={deleteMutation.isPending ? <CircularProgress size={20} /> : <DeleteIcon />}
-              >
-                Delete Tournament
-              </Button>
-            )}
           </Box>
         </form>
       </Paper>
-
-      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this tournament? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleDelete} color="error" disabled={deleteMutation.isPending}>
-            {deleteMutation.isPending ? <CircularProgress size={20} /> : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };
