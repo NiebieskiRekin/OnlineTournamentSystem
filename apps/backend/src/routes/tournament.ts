@@ -275,7 +275,6 @@ export const tournamentRoute = new Hono<auth_vars>()
           .select({
             user: user.name,
             score: participant.score,
-            winner: participant.winner,
             licenceNumber: participant.licenseNumber
           }).from(participant)
           .innerJoin(tournament,eq(participant.tournament,tournament.id))
@@ -332,7 +331,6 @@ export const tournamentRoute = new Hono<auth_vars>()
           user: user.name,
           id: user.id,
           score: participant.score,
-          winner: participant.winner,
           licenseNumber: participant.licenseNumber
         }).from(participant).innerJoin(user,eq(participant.user,user.id)).where(eq(participant.tournament,id));
         const tournamentData = (await db.select({participants: tournament.participants,maxParticipants: tournament.maxParticipants}).from(tournament).where(eq(tournament.id,id)).then((res)=>res[0]));
@@ -366,7 +364,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         }
 
         const res = (await db.transaction(async (tx) =>{
-          const participantQuery = tx.insert(participant).values({...req, user: user_session.id, tournament: id, winner: false}).returning({score: participant.score, licenseNumber: participant.licenseNumber}).then((res) => res[0]);
+          const participantQuery = tx.insert(participant).values({...req, user: user_session.id, tournament: id}).returning({score: participant.score, licenseNumber: participant.licenseNumber}).then((res) => res[0]);
           const tournamentQuery = tx.update(tournament).set({participants: sql`${tournament.participants}+1`}).where(eq(tournament.id,id)).returning({participants: tournament.participants}).then((res)=>res[0])
           return Promise.all([participantQuery,tournamentQuery])
         }))

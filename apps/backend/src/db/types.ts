@@ -103,7 +103,7 @@ const participantUpdateSchema = createUpdateSchema(participant).required({
 const participantInsertSchema = createInsertSchema(participant).omit({
     tournament: true,
     user: true,
-    winner: true
+    id: true,
 });
 
 const matchSelectSchema = createSelectSchema(match);
@@ -112,7 +112,8 @@ const matchUpdateSchema = createUpdateSchema(match).required({
     id: true
 });
 const matchInsertSchema = createInsertSchema(match).omit({
-    id: true
+    id: true,
+    winner: true
 });
 
 const basicErrorSchema = z.object({ error: z.string() });

@@ -101,3 +101,9 @@ export const matchParticipant = pgTable("match_participant", {
   match: integer("match").notNull().references(()=>participant.id,{onDelete:"cascade"}),
 }, (table) => [
   primaryKey({ columns: [table.participant, table.match]})]);
+
+export const tournamentWinners = pgTable("tournament_winners", {
+  participant: integer("participant").notNull().references(()=>participant.id,{onDelete:"cascade"}),
+  tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
+}, (table) => [
+  primaryKey({ columns: [table.participant, table.tournament]})]);
