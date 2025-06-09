@@ -91,7 +91,6 @@ export const participant = pgTable("participant", {
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
-  time: timestamp("time", {mode: "string", withTimezone: true}),
   winner: text("participant").references(()=>user.id,{onDelete:"cascade"}),
   level: integer("level").notNull().default(0),
 });
