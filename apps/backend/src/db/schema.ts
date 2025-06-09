@@ -72,6 +72,7 @@ export const tournament = pgTable("tournament", {
 	maxParticipants: integer("max_participants").notNull().default(10),
 	applicationDeadline: timestamp("application_deadline", {mode: "string", withTimezone: true}),
   sponsorLogos: text("sponsor_logos"),
+  groupsCreated: boolean("groups_created").notNull().default(false),
   },
   (table) => [
     check("participants_cannot_be_greater_than_max", lte(table.participants,table.maxParticipants)),
@@ -80,24 +81,23 @@ export const tournament = pgTable("tournament", {
 ]);
 
 export const participant = pgTable("participant", {
+  id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete:"cascade"}),
 	user: text("user").notNull().references(()=>user.id,{onDelete:"cascade"}),
 	score: integer("score"),
-	winner: boolean("winner"),
   licenseNumber: text("license_number").notNull(),
-}, (table) => [
-	primaryKey({ columns: [table.tournament, table.user]})]);
+});
 
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
   time: timestamp("time", {mode: "string", withTimezone: true}),
+  winner: text("participant").references(()=>user.id,{onDelete:"cascade"}),
+  level: integer("level").notNull().default(0),
 });
 
-export const player = pgTable("player", {
-	match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
-	user: text("user").notNull().references(()=>user.id,{onDelete:"cascade"}),
-	score: integer("score"),
-	winner: boolean("winner"),
+export const matchParticipant = pgTable("match_participant", {
+  participant: integer("participant").notNull().references(()=>participant.id,{onDelete:"cascade"}),
+  match: integer("match").notNull().references(()=>participant.id,{onDelete:"cascade"}),
 }, (table) => [
-	primaryKey({ columns: [table.match, table.user]})]);
+  primaryKey({ columns: [table.participant, table.match]})]);
