@@ -33,6 +33,7 @@
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.9",
     "hono-openapi": "^0.4.8",
+    "node-cron": "^4.1.0",
     "nodemailer": "^7.0.3",
     "pg": "^8.14.1",
     "winston": "^3.17.0",
