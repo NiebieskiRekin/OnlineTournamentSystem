@@ -115,6 +115,11 @@ const matchInsertSchema = createInsertSchema(match).omit({
     id: true,
     winner: true
 });
+const matchQueryParams = z.object({
+    pageIndex: z.number({coerce: true}).default(0),
+    pageSize: z.number({coerce: true}).default(20),
+    user: z.string(),
+}).partial()
 
 const basicErrorSchema = z.object({ error: z.string() });
 
@@ -124,5 +129,5 @@ export {
     matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
     basicErrorSchema, sorting, sponsorLogos,
     tournamentColumnFilters, tournamentSorting,
-    stringToJSONSchema
+    stringToJSONSchema, matchQueryParams
 };

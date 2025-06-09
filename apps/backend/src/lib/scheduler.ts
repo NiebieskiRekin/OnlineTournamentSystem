@@ -12,7 +12,7 @@ function repeatArray<Type>(array: Array<Type>, count: number): typeof array {
   return out
 };
 
-async function createGroups(tournamentId: number) {
+export async function createGroups(tournamentId: number) {
   await db.transaction(async tx => {
     const participants = await tx.select({
       p: participant.id,
