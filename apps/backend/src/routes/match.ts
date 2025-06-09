@@ -10,6 +10,7 @@ import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, sql, and, ne} from "drizzle-orm";
 import logger from "../lib/logger";
 import { createGroups } from "../lib/scheduler";
+import { QueryBuilder } from "drizzle-orm/pg-core";
 
 export const matchRoute = new Hono<auth_vars>()
   .use("*",auth_middleware)
@@ -32,6 +33,26 @@ export const matchRoute = new Hono<auth_vars>()
         }
 
         const [result, totalCount] = await db.transaction(async (tx) => {
+
+          const qb = new QueryBuilder();
+
+          const subquery = qb.select(
+            {others: sql<string>`string_agg(${user.name}, ', ')`.as('others')}
+          ).from(matchParticipant)
+          .innerJoin(participant,eq(matchParticipant.participant,participant.id))
+          .innerJoin(user,eq(participant.user,user.id))
+          .groupBy(matchParticipant.match)
+          .having(
+            and(
+              ne(matchParticipant.participant,participant.id),
+              eq(matchParticipant.match,match.id)
+            )
+          )
+
+          const temp = subquery.toSQL()
+          logger.info(temp.sql)
+
+
           const res = await tx.select({
             id: match.id,
             level: match.level,
@@ -39,18 +60,7 @@ export const matchRoute = new Hono<auth_vars>()
             tournamentId: tournament.id,
             tournament: tournament.name,
             time: tournament.time,
-            otherParticipants: tx.select(
-              {others: sql<string>`string_agg(${user.name}, ', ')`.as('otherParticipants')}
-            ).from(matchParticipant)
-            .innerJoin(participant,eq(matchParticipant.participant,participant.id))
-            .innerJoin(user,eq(participant.user,user.id))
-            .groupBy(matchParticipant.match)
-            .having(
-              and(
-                ne(matchParticipant.participant,participant.id),
-                eq(matchParticipant.match,match.id)
-              )
-            ).as('otherParticipants').others
+            otherParticipants: sql.raw(`(${temp.sql})`)
           })
           .from(matchParticipant)
           .innerJoin(match,eq(matchParticipant.match,match.id))
