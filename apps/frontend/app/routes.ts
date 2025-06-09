@@ -14,6 +14,9 @@ import {
         route(":id", "./routes/tournament/tournament-details.tsx"),
         route(":id/edit", "./routes/tournament/edit-tournament.tsx")
       ]),
+      ...prefix("matches", [
+        index("./routes/games.tsx"),
+      ])
     ]),
     route("/login", "./routes/auth/login.tsx"),
     route("/sign-up", "./routes/auth/sign-up.tsx"),

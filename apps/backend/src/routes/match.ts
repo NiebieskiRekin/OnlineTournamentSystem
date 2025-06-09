@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
@@ -41,7 +40,7 @@ export const matchRoute = new Hono<auth_vars>()
             tournament: tournament.name,
             time: tournament.time,
             otherParticipants: tx.select(
-              {others: sql`string_agg(${user.name}, ', ')`.as('otherParticipants')}
+              {others: sql<string>`string_agg(${user.name}, ', ')`.as('otherParticipants')}
             ).from(matchParticipant)
             .innerJoin(participant,eq(matchParticipant.participant,participant.id))
             .innerJoin(user,eq(participant.user,user.id))
