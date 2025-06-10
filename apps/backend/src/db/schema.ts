@@ -1,5 +1,5 @@
 import { gte, lte, sql } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, serial, integer, primaryKey, check } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, serial, integer, primaryKey, check, foreignKey, pgEnum } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -89,16 +89,36 @@ export const participant = pgTable("participant", {
   licenseNumber: text("license_number").notNull(),
 });
 
+export const matchState = pgEnum("match_state", [
+  'NO_PARTY' , 'DONE' , 'SCORE_DONE'
+])
+
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
   winner: text("winner").references(()=>user.id,{onDelete:"cascade"}),
   level: integer("level").notNull().default(0),
-});
+  time: timestamp("time", {mode: "string", withTimezone: true}),
+  state: matchState("state").notNull().default("NO_PARTY"),
+  nextMatch: integer("next_match")
+}, (table)=>[
+  foreignKey({
+    columns: [table.nextMatch],
+    foreignColumns: [table.id],
+    name: "next_match_fk"
+  })
+]);
+
+export const matchParticipantState = pgEnum("match_participant_state", [
+  'WON', 'LOST', 'DRAW', 'NOT_PLAYED'
+]);
+
 
 export const matchParticipant = pgTable("match_participant", {
   participant: integer("participant").notNull().references(()=>participant.id,{onDelete:"cascade"}),
   match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
+  score: integer("score"),
+  state: matchParticipantState("state").notNull().default("NOT_PLAYED"),
 }, (table) => [
   primaryKey({ columns: [table.participant, table.match]})]);
 

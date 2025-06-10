@@ -16,7 +16,8 @@ import {
       ]),
       ...prefix("matches", [
         index("./routes/games.tsx"),
-      ])
+      ]),
+      route("brackets", "./routes/brackets.tsx")
     ]),
     route("/login", "./routes/auth/login.tsx"),
     route("/sign-up", "./routes/auth/sign-up.tsx"),

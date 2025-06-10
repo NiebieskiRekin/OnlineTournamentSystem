@@ -1,9 +1,7 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { ProcessEnv } from "./env";
 import { registerRoutes } from "./routes";
-import { log } from "./lib/logger";
 import { auth, auth_vars } from "./lib/auth";
 import { auth_middleware } from "./middleware/auth-middleware";
 
@@ -25,9 +23,6 @@ app.use(
 
 app.use("*",auth_middleware);
 
-if (ProcessEnv.NODE_ENV != "production") {
-  app.use("*", logger()); // Only for testing and development
-  log("Server", "info", "Połączono z Serwerem");
-}
+app.use("*", logger());
 
 export default app;

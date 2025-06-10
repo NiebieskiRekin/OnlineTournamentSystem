@@ -15,6 +15,7 @@ import AnalyticsRoundedIcon from '@mui/icons-material/AnalyticsRounded';
 import { useLocation, useNavigate } from 'react-router';
 import { authClient } from '~/lib/auth';
 import { GamepadRounded } from '@mui/icons-material';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 
 
@@ -33,7 +34,8 @@ export default function MenuContent() {
   const mainListItems = [
     { text: 'Home', icon: <HomeRoundedIcon />, query: "", baseUrl: "/" },
     { text: 'My Tournaments', icon: <AnalyticsRoundedIcon />, query: `?participant=${session.data?.user.id}`, baseUrl: "/" },
-    { text: 'My Games', icon: <GamepadRounded />, query: `?participant=${session.data?.user.id}`, baseUrl: "/matches/"}
+    { text: 'My Games', icon: <GamepadRounded />, query: `?participant=${session.data?.user.id}`, baseUrl: "/matches/"},
+    { text: 'Brackets', icon: <AccountTreeIcon/>, query: "", baseUrl: "/brackets"}
     // { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
   ];
 

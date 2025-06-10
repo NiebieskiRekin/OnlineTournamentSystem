@@ -1,7 +1,7 @@
 import app from "./app";
 import { ProcessEnv } from "./env";
 import { serve } from "@hono/node-server";
-import { log } from "./lib/logger";
+import logger from "./lib/logger";
 
 export const server = serve(
   {
@@ -10,7 +10,6 @@ export const server = serve(
     fetch: app.fetch,
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
-    log("Server", "info", "Połączono z Serwerem");
+    logger.info(`Server is running on http://localhost:${info.port}`);
   }
 );
