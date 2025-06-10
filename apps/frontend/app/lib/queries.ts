@@ -9,7 +9,8 @@ export const queryKeys = {
   LIST_TOURNAMENTS_FOR_USER: (id: string) => ({ queryKey: ["list-tournaments-for-user",id] }),
   LIST_PARTICIPANTS: (id: string) => ({ queryKey: [`list-participants`,id] }),
   LIST_MATCH: (id: string) => ({ queryKey: [`list-matches`,id] }),
-  LIST_MATCHES: {queryKey: ["list-matches"]}
+  LIST_MATCHES: {queryKey: ["list-matches"]},
+  LIST_BRACKETS_FOR_TOURNAMENT: (id: string) => ({ queryKey: [`list-brackets-for-tournament`,id] }),
 };
 
 

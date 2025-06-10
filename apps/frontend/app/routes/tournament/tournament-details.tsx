@@ -125,7 +125,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           id: id
         }
       });
-      
+
       if (!response.ok){
         const result = await response.json();
         parseError(result)
@@ -232,7 +232,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           <DetailItem label="Location" value={tournamentData.location} />
         </Grid>
 
-        {/* {tournamentData.location && (
+        {tournamentData.location && (
           <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom>
               Location
@@ -248,7 +248,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
                 src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${tournamentData.location.trim()}`}
               ></iframe>
           </Box>
-        )} */}
+        )}
         <Divider sx={{ my: 2 }} />
 
         <TournamentParticipantsTable tournamentId={tournamentData.id} />

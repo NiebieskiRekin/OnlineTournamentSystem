@@ -1,8 +1,8 @@
-import { createTheme, DoubleEliminationBracket, Match, SVGViewer, type MatchType, type ParticipantType } from 'react-tournament-brackets';
+import { createTheme, Match, SingleEliminationBracket, SVGViewer, type MatchType, type ParticipantType } from 'react-tournament-brackets';
 import Box from '@mui/material/Box'; // Import Box for container
 import { useRef, useState, useEffect } from 'react';
 
-type BracketsType = { upper: MatchType[]; lower: MatchType[] }
+type BracketsType = MatchType[]
 
 const WhiteTheme = createTheme({
     textColor: { main: '#000000', highlighted: '#07090D', dark: '#3E414D' },
@@ -83,7 +83,7 @@ export default function EliminationsBrackets({matches, onMatchClick, onPartyClic
     >
       {/* Render the bracket only when valid dimensions are available */}
       {dimensions.width > 1 && dimensions.height > 1 && (
-        <DoubleEliminationBracket
+        <SingleEliminationBracket
           theme={WhiteTheme}
           matches={matches}
           matchComponent={Match}
