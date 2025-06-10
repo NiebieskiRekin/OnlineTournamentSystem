@@ -12,27 +12,28 @@ import AnalyticsRoundedIcon from '@mui/icons-material/AnalyticsRounded';
 // import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 // import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 // import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { authClient } from '~/lib/auth';
 import { GamepadRounded } from '@mui/icons-material';
 
 
 
-const secondaryListItems = [
-  // { text: 'Settings', icon: <SettingsRoundedIcon /> },
-  // { text: 'About', icon: <InfoRoundedIcon /> },
-  // { text: 'Feedback', icon: <HelpRoundedIcon /> },
-];
+// const secondaryListItems = [
+//   // { text: 'Settings', icon: <SettingsRoundedIcon /> },
+//   // { text: 'About', icon: <InfoRoundedIcon /> },
+//   // { text: 'Feedback', icon: <HelpRoundedIcon /> },
+// ];
 
 export default function MenuContent() {
   const navigate = useNavigate();
   const session = authClient.useSession()
-  const [selected, setSelected] = React.useState(0);
+  // const [selected, setSelected] = React.useState(0);
+  const location = useLocation()
 
   const mainListItems = [
-    { text: 'Home', icon: <HomeRoundedIcon />, link: "/" },
-    { text: 'My Tournaments', icon: <AnalyticsRoundedIcon />, link: `/?participant=${session.data?.user.id}` },
-    { text: 'My Games', icon: <GamepadRounded />, link: `/matches/?participant=${session.data?.user.id}`}
+    { text: 'Home', icon: <HomeRoundedIcon />, query: "", baseUrl: "/" },
+    { text: 'My Tournaments', icon: <AnalyticsRoundedIcon />, query: `?participant=${session.data?.user.id}`, baseUrl: "/" },
+    { text: 'My Games', icon: <GamepadRounded />, query: `?participant=${session.data?.user.id}`, baseUrl: "/matches/"}
     // { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
   ];
 
@@ -41,14 +42,14 @@ export default function MenuContent() {
       <List dense>
         {mainListItems.map((item, index) => (
           <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton selected={index === selected} onClick={()=>{setSelected(index); navigate(item.link)}}>
+            <ListItemButton selected={item.baseUrl === location.pathname && item.query === location.search} onClick={()=>{navigate(item.baseUrl+item.query)}}>
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
-      <List dense>
+      {/* <List dense>
         {secondaryListItems.map((item, index) => (
           <ListItem key={index} disablePadding sx={{ display: 'block' }}>
             <ListItemButton>
@@ -57,7 +58,7 @@ export default function MenuContent() {
             </ListItemButton>
           </ListItem>
         ))}
-      </List>
+      </List> */}
     </Stack>
   );
 }
