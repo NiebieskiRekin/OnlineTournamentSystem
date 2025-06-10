@@ -1,8 +1,9 @@
-import cron from "node-cron";
+// import cron from "node-cron";
 import { tournament, participant, match, matchParticipant } from "../db/schema";
 import { db } from "../db";
-import {eq, and, lt, desc} from "drizzle-orm"
-import logger from "./logger";
+// import {eq, and, lt, desc} from "drizzle-orm"
+import {eq, desc} from "drizzle-orm"
+// import logger from "./logger";
 
 function repeatArray<Type>(array: Array<Type>, count: number): typeof array {
   let out: typeof array = [];
@@ -74,28 +75,28 @@ export async function createGroups(tournamentId: number) {
   })
 }
 
-async function getTournamentsForGrouping(): Promise<number[]> {
-  const tournaments = await db.select({
-    tournament: tournament.id
-  }).from(tournament)
-  .where(and(eq(tournament.groupsCreated,false),lt(tournament.applicationDeadline,new Date().toDateString())))
-  .orderBy(tournament.id);
+// async function getTournamentsForGrouping(): Promise<number[]> {
+//   const tournaments = await db.select({
+//     tournament: tournament.id
+//   }).from(tournament)
+//   .where(and(eq(tournament.groupsCreated,false),lt(tournament.applicationDeadline,new Date().toDateString())))
+//   .orderBy(tournament.id);
 
-  return tournaments.map(t => t.tournament);
-}
+//   return tournaments.map(t => t.tournament);
+// }
 
 // every 5th minute
-cron.schedule("*/5 * * * *", () => { 
-    (getTournamentsForGrouping()).then((tournaments) =>{
-      logger.info("Starting cron task - generating groups")
-      for (const tournament of tournaments){
-        createGroups(tournament).then(()=>{
-          logger.info("Groups created for tournament "+tournament);
-        }).catch(error => {
-          logger.error(error);
-        })
-      }
-    }).catch(error => {
-      logger.error(error);
-    })
-});
+// cron.schedule("*/5 * * * *", () => { 
+//     (getTournamentsForGrouping()).then((tournaments) =>{
+//       logger.info("Starting cron task - generating groups")
+//       for (const tournament of tournaments){
+//         createGroups(tournament).then(()=>{
+//           logger.info("Groups created for tournament "+tournament);
+//         }).catch(error => {
+//           logger.error(error);
+//         })
+//       }
+//     }).catch(error => {
+//       logger.error(error);
+//     })
+// });

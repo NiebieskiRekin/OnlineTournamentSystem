@@ -34,33 +34,13 @@ export const matchRoute = new Hono<auth_vars>()
 
         const [result, totalCount] = await db.transaction(async (tx) => {
 
-          const qb = new QueryBuilder();
-
-          const subquery = qb.select(
-            {others: sql<string>`string_agg(${user.name}, ', ')`.as('others')}
-          ).from(matchParticipant)
-          .innerJoin(participant,eq(matchParticipant.participant,participant.id))
-          .innerJoin(user,eq(participant.user,user.id))
-          .groupBy(matchParticipant.match)
-          .having(
-            and(
-              ne(matchParticipant.participant,participant.id),
-              eq(matchParticipant.match,match.id)
-            )
-          )
-
-          const temp = subquery.toSQL()
-          logger.info(temp.sql)
-
-
-          const res = await tx.select({
+          let res = await tx.select({
             id: match.id,
             level: match.level,
             winner: user.name,
             tournamentId: tournament.id,
             tournament: tournament.name,
             time: tournament.time,
-            otherParticipants: sql.raw(`(${temp.sql})`)
           })
           .from(matchParticipant)
           .innerJoin(match,eq(matchParticipant.match,match.id))
@@ -71,6 +51,26 @@ export const matchRoute = new Hono<auth_vars>()
           .orderBy(asc(match.id))
           .limit(limit)
           .offset(offset)
+
+          // res.map(()=>{
+          //   const subquery = tx.select({name: user.name, id: user.id}).from(matchParticipant)
+          //   .innerJoin(participant,eq(matchParticipant.participant,participant.id))
+          //   .innerJoin(user,eq(participant.user,user.id))
+          //   .where(matchParticipant.match)
+          //   .having(
+          //     and(
+          //       ne(participant.user,userId),
+          //       eq(matchParticipant.match,row.id)
+          //     )
+          //   )
+
+          //   return subquery.then((res)=>{
+
+          //   })
+
+          // })
+
+          
   
           const totalCountQuery = tx.select({count: count()})
           .from(matchParticipant)
