@@ -1,7 +1,9 @@
-import { CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Dialog, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useParams } from "react-router";
 import EliminationsBrackets from "~/components/EliminationsBrackets";
+import MatchForm from "~/components/MatchForm";
 import apiClient from "~/lib/api-client";
 import { queryKeys, parseError } from "~/lib/queries";
 
@@ -390,6 +392,8 @@ import { queryKeys, parseError } from "~/lib/queries";
 
 export default function Bracket(){
   const { id } = useParams();
+  const [selectedMatch, setSelectedMatch] = useState<number | null>(null);
+  const [selectedParty, setSelectedParty] = useState<number | null>(null);
   
   
   const { data: matches, isLoading: isLoadingBrackets, error } = useQuery({
@@ -418,6 +422,32 @@ export default function Bracket(){
     return <p>Error! {error.message}</p>
   }
 
-  const result = (!isLoadingBrackets && matches) ? (<EliminationsBrackets matches={matches.data} onMatchClick={()=>{}} onPartyClick={()=>{}} />) : <CircularProgress />;
-  return result
+  const result = (!isLoadingBrackets && matches) ? (
+    <EliminationsBrackets matches={matches.data} 
+    onMatchClick={(m)=>{
+      setSelectedParty(null)
+      setSelectedMatch(Number.parseInt(m.match.id as string))
+    }} 
+    onPartyClick={(p)=>{
+      setSelectedParty(Number.parseInt(p.id as string))
+    }} />) : <CircularProgress />;
+  return (
+    <Box>
+      <Typography>
+        Selected match: {selectedMatch}
+      </Typography>
+      <Typography>
+        Selected party: {selectedParty}
+      </Typography>
+      {result}
+      
+      <Dialog open={selectedMatch!==null && selectedParty!==null}>
+        <MatchForm id={selectedMatch!} participant={selectedParty!} onCancel={()=>{
+          setSelectedMatch(null)
+          setSelectedParty(null)
+        }}/>
+      </Dialog>
+      
+    </Box>
+  );
 }

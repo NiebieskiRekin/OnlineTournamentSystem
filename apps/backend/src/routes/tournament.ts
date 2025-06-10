@@ -57,7 +57,6 @@ export const tournamentRoute = new Hono<auth_vars>()
             level: h.level,
             state: h.state,
             nextMatchId: h.nextMatchId,
-            href: `/matches/${h.id}`,
             participants: participants.filter((p)=>{
               return p.match === h.id
             })

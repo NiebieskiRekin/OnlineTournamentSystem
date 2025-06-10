@@ -20,19 +20,19 @@ import { useMutation } from '@tanstack/react-query';
 import queryClient from '~/lib/query-client';
 import apiClient from '~/lib/api-client';
 
-const StatusesValues = ["WON", "LOST", "NOT_PLAYED"]
+const StatusesValues = ["WON", "LOST"]
 
 const formSchema = z.object({
     score: z.number().optional(),
     status: matchParticipantStateSchema,
 })
 
-export default function MatchForm({ id, participant}: { id: number, participant: number}) {
+export default function MatchForm({ id, participant, onCancel}: { id: number, participant: number, onCancel: () => void }) {
   const {
     handleSubmit,
     control,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting},
   } = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -81,6 +81,7 @@ export default function MatchForm({ id, participant}: { id: number, participant:
   // Reset form and submitted data
   const handleReset = () => {
     reset();
+    onCancel();
   };
 
   return (
@@ -90,18 +91,18 @@ export default function MatchForm({ id, participant}: { id: number, participant:
             Edit Match Information
         </Typography>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)}>
             <Controller
             name="status"
             control={control}
             rules={{ required: 'Status is requried' }}
             render={({ field }) => (
                 <FormControl fullWidth variant="outlined" error={!!errors.status}>
-                <InputLabel id="winner-label">Who Won?</InputLabel>
+                <InputLabel id="winner-label">Status</InputLabel>
                 <Select
                     labelId="winner-label"
                     id="winner"
-                    label="Who Won?"
+                    label="Status"
                     {...field}
                     className="rounded-lg"
                 >
@@ -150,7 +151,7 @@ export default function MatchForm({ id, participant}: { id: number, participant:
                 variant="outlined"
                 onClick={handleReset}
             >
-                Reset
+                Cancel
             </Button>
             {isSubmitting ? (
                 <Button
