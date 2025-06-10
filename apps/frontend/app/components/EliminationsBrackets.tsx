@@ -1,8 +1,28 @@
-import { DoubleEliminationBracket, Match, SVGViewer, type MatchType } from 'react-tournament-brackets';
+import { createTheme, DoubleEliminationBracket, Match, SVGViewer, type MatchType, type ParticipantType } from 'react-tournament-brackets';
 import Box from '@mui/material/Box'; // Import Box for container
 import { useRef, useState, useEffect } from 'react';
 
 type BracketsType = { upper: MatchType[]; lower: MatchType[] }
+
+const WhiteTheme = createTheme({
+    textColor: { main: '#000000', highlighted: '#07090D', dark: '#3E414D' },
+    matchBackground: { wonColor: '#daebf9', lostColor: '#96c6da' },
+    score: {
+      background: { wonColor: '#87b2c4', lostColor: '#87b2c4' },
+      text: { highlightedWonColor: '#7BF59D', highlightedLostColor: '#FB7E94' },
+    },
+    border: {
+      color: '#CED1F2',
+      highlightedColor: '#da96c6',
+    },
+    roundHeader: { backgroundColor: '#da96c6', fontColor: '#FFF' },
+    connectorColor: '#CED1F2',
+    connectorColorHighlight: '#da96c6',
+    svgBackground: '#FAFAFA',
+    roundHeaders: { backgroundColor: '#da96c6', fontColor: '#FFF' },
+    canvasBackground: '#FAFAFA',
+    disabledColor: '#CED1F2',
+  });
 
 export default function EliminationsBrackets({matches, onMatchClick, onPartyClick} : {matches: BracketsType, onMatchClick: (args: {
     match: MatchType;
@@ -64,12 +84,27 @@ export default function EliminationsBrackets({matches, onMatchClick, onPartyClic
       {/* Render the bracket only when valid dimensions are available */}
       {dimensions.width > 1 && dimensions.height > 1 && (
         <DoubleEliminationBracket
+          theme={WhiteTheme}
           matches={matches}
           matchComponent={Match}
           onMatchClick={onMatchClick}
           onPartyClick={onPartyClick}
+          options={{
+            style: {
+              roundHeader: {
+                backgroundColor: WhiteTheme.roundHeader.backgroundColor,
+                fontColor: WhiteTheme.roundHeader.fontColor,
+              },
+              connectorColor: WhiteTheme.connectorColor,
+              connectorColorHighlight: WhiteTheme.connectorColorHighlight,
+            },
+          }}
           svgWrapper={({ children, ...props }) => (
-            <SVGViewer width={dimensions.width - 10} height={dimensions.height - 20} {...props}>
+            <SVGViewer 
+                width={dimensions.width - 10} height={dimensions.height - 20}
+                background={WhiteTheme.svgBackground}
+                SVGBackground={WhiteTheme.svgBackground}      
+                {...props}>
               {children}
             </SVGViewer>
           )}
