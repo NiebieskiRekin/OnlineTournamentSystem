@@ -25,7 +25,7 @@ type MatchData = {
   tournamentId: number;
   tournament: string;
   time: string | null;
-  otherParticipants: string;
+  participants: string;
 }
 
 export default function GamesTable({participant} : {participant: string|null}) {
@@ -44,7 +44,7 @@ export default function GamesTable({participant} : {participant: string|null}) {
     refetch,
   } = useQuery({
     queryKey: [
-      participant ? queryKeys.LIST_TOURNAMENTS_FOR_USER(participant) : queryKeys.LIST_TOURNAMENTS,
+      participant ? queryKeys.LIST_MATCH(participant) : queryKeys.LIST_MATCHES,
       {
         pagination,
       },
@@ -77,30 +77,30 @@ export default function GamesTable({participant} : {participant: string|null}) {
   const columns = useMemo<MRT_ColumnDef<MatchData>[]>(
     () => [
       {
-        accessorKey: 'id',
-        header: 'ID',
-      },
-      {
         accessorKey: "level",
         header: "Level",
+        filterVariant: "range"
       },
       {
         accessorKey: "tournament",
         header: "Tournament",
+        filterVariant: "text",
       },
       {
         accessorKey: "time",
         header: "Time",
-        // filterVariant: "date",
+        filterVariant: "datetime-range",
         // Cell: ({ cell }) => {new Date(cell.getValue<Date>()).toLocaleString()},
       },
       {
         accessorKey: "winner",
         header: "Winner",
+        filterVariant: "text",
       },
       {
-        accessorKey: "otherParticipants",
+        accessorKey: "participants",
         header: "Other participants",
+        filterVariant: "text",
       }
     ],
     [],
