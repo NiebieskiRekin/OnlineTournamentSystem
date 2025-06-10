@@ -7,10 +7,9 @@ import { match, matchParticipant, participant, tournament, user } from "../db/sc
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
-import { asc, eq, count, sql, and, ne} from "drizzle-orm";
+import { asc, eq, count, and, ne} from "drizzle-orm";
 import logger from "../lib/logger";
 import { createGroups } from "../lib/scheduler";
-import { QueryBuilder } from "drizzle-orm/pg-core";
 
 export const matchRoute = new Hono<auth_vars>()
   .use("*",auth_middleware)
@@ -32,16 +31,30 @@ export const matchRoute = new Hono<auth_vars>()
           return c.json({error: "Invalid request"}, 400);
         }
 
-        const [result, totalCount] = await db.transaction(async (tx) => {
+        type RES =  ({
+          id: number,
+          level: number,
+          winner: string | null,
+          tournamentId: number,
+          tournament: string,
+          time: string | null,
+        } & {
+          participants?: {
+              name:string | null,
+              id: string
+          }[]
+        })[]
 
-          let res = await tx.select({
-            id: match.id,
-            level: match.level,
-            winner: user.name,
-            tournamentId: tournament.id,
-            tournament: tournament.name,
-            time: tournament.time,
-          })
+      const [result, totalCount] = await db.transaction(async (tx) => {
+
+        const res: RES = await tx.select({
+          id: match.id,
+          level: match.level,
+          winner: user.name,
+          tournamentId: tournament.id,
+          tournament: tournament.name,
+          time: tournament.time,
+        })
           .from(matchParticipant)
           .innerJoin(match,eq(matchParticipant.match,match.id))
           .innerJoin(participant,eq(matchParticipant.participant,participant.id))
@@ -52,30 +65,30 @@ export const matchRoute = new Hono<auth_vars>()
           .limit(limit)
           .offset(offset)
 
-          // res.map(()=>{
-          //   const subquery = tx.select({name: user.name, id: user.id}).from(matchParticipant)
-          //   .innerJoin(participant,eq(matchParticipant.participant,participant.id))
-          //   .innerJoin(user,eq(participant.user,user.id))
-          //   .where(matchParticipant.match)
-          //   .having(
-          //     and(
-          //       ne(participant.user,userId),
-          //       eq(matchParticipant.match,row.id)
-          //     )
-          //   )
+          res.forEach((row)=>{
+            const subquery = tx.select({name: user.name, id: user.id}).from(matchParticipant)
+            .innerJoin(participant,eq(matchParticipant.participant,participant.id))
+            .innerJoin(user,eq(participant.user,user.id))
+            .where(
+              and(
+                ne(participant.user,userId),
+                eq(matchParticipant.match,row.id)
+              )
+            )
 
-          //   return subquery.then((res)=>{
-
-          //   })
-
-          // })
+            subquery.then((res)=>{
+              row.participants = res
+            }).catch((err)=>{
+              logger.error(err)
+            })
+          })
 
           
   
           const totalCountQuery = tx.select({count: count()})
           .from(matchParticipant)
           .innerJoin(participant,eq(matchParticipant.participant,participant.id))
-          .having(eq(participant.user,userId))
+          .where(eq(participant.user,userId))
           .then((res)=>res[0])
   
 
