@@ -151,7 +151,6 @@ export type MatchType = {
   nextMatchId: number | string | null;
   nextLooserMatchId?: number | string;
   tournamentRoundText?: string;
-  startTime: string;
   state: "PLAYED" | "NO_SHOW" | "WALK_OVER" | "NO_PARTY";
   participants: ParticipantType[];
 }

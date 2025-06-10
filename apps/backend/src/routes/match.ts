@@ -1,31 +1,22 @@
 import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
-  matchInsertSchema,
   matchParticipantStateSchema,
   matchQueryParams,
   MatchType
 } from "@/backend/db/types";
-import { match, matchParticipant, matchParticipantState, participant, tournament, user } from "../db/schema";
+import { match, matchParticipant, participant, tournament, tournamentWinners, user } from "../db/schema";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
-import { asc, eq, count, and, ne} from "drizzle-orm";
+import { asc, eq, count, and, ne, sql} from "drizzle-orm";
 import logger from "../lib/logger";
 import { z } from "zod";
 
-
-const schema = matchInsertSchema.omit({
-  tournament: true,
-  nextMatch: true,
-  level: true,
-}).merge(z.object({
-  participants: z.array(z.object({
-    id: z.number(),
-    score: z.number().optional(),
-    status: matchParticipantStateSchema,
-    winner: z.boolean()
-  }))
-}));
+const schema = z.object({
+  participant: z.number(),
+  status: matchParticipantStateSchema,
+  score: z.number().optional(),
+})
 
 export const matchRoute = new Hono<auth_vars>()
   .get(
@@ -37,16 +28,13 @@ export const matchRoute = new Hono<auth_vars>()
         const header = await db.select({
           id: match.id,
           level: match.level,
-          winner: user.name,
           tournamentId: tournament.id,
           tournament: tournament.name,
-          startTime: match.time,
           state: match.state,
           nextMatchId: match.nextMatch,
         })
         .from(match)
         .innerJoin(tournament,eq(match.tournament,tournament.id))
-        .leftJoin(user,eq(match.winner,user.id))
         .where(eq(match.id,id))
         .then((res)=>res[0])
 
@@ -62,7 +50,7 @@ export const matchRoute = new Hono<auth_vars>()
         .innerJoin(user,eq(participant.user,user.id))
         .where(eq(matchParticipant.match,id))
 
-        const res: MatchType = {...header, startTime: header.startTime ?? "",href: `/matches/${id}`, participants: participants}
+        const res: MatchType = {...header,href: `/matches/${id}`, participants: participants}
         return c.json(res, 200);
       } catch {
         return c.json({ error: "Server error" }, 500);
@@ -93,53 +81,62 @@ export const matchRoute = new Hono<auth_vars>()
 
         const isParticipant = participantData.some(p => p.participant.user === user_session.id);
 
-        if (!isParticipant && matchData.state !== "NO_PARTY"){
+        if (!isParticipant){
            return c.json({error: "Unauthorized"}, 401);
         }
 
         await db.transaction(async (tx) => {
-          // Update the current match
-          await tx.update(match)
-            .set(req)
-            .where(eq(match.id, id));
-
-          // Update matchParticipant states and scores
-          if (req.participants && req.participants.length > 0) {
-            for (const p of req.participants) {
-              await tx.update(matchParticipant)
-                .set({ state: p.status, score: p.score })
-                .where(and(eq(matchParticipant.match, id), eq(matchParticipant.participant, p.id)));
-
-              // Update participant score in the participant table if score is provided
-              if (p.score !== undefined && p.score !== null) {
-                 await tx.update(participant)
-                   .set({ score: p.score })
-                   .where(eq(participant.id, p.id));
-              }
-            }
+          if (req.score){
+            await tx.update(matchParticipant)
+            .set({ state: req.status, score: sql`${matchParticipant.score}+${req.score}`})
+            .where(and(eq(matchParticipant.match, id), eq(matchParticipant.participant, req.participant)));
+          } else {
+            await tx.update(matchParticipant)
+            .set({ state: req.status})
+            .where(and(eq(matchParticipant.match, id), eq(matchParticipant.participant, req.participant)));
           }
 
-          // Update the next match if the current match has a winner
-          if (req.winner && matchData.nextMatch) {
-            await tx.update(match)
-              .set({ winner: req.winner })
-              .where(eq(match.id, matchData.nextMatch));
+          // Check if all results are set
+          const all_results = await tx.select().from(matchParticipant).where(eq(matchParticipant.match,id))
 
-            // Add the winner of the current match as a participant in the next match
-            
-            const winner_participant = req.participants.find(p => p.winner);
-            if (winner_participant){
+          if (all_results.every((v)=>v.state!='NOT_PLAYED')){
+            let winner: typeof all_results[0] | undefined;
+            for (const p of all_results){
+              if (p.state === 'WON'){
+                if (winner != undefined){
+                  logger.warn("Multiple winners found", winner, p.participant)
+                  tx.rollback()
+                  return;
+                }
+                winner = p;
+              }
+            }
+
+            if (winner === undefined){
+              logger.warn("No winner found")
+              tx.rollback()
+              return;
+            }
+
+            if (matchData.nextMatch !== null){
               await tx.insert(matchParticipant)
               .values({
                 match: matchData.nextMatch,
-                participant: winner_participant.id,
+                participant: winner.participant,
+              }).onConflictDoNothing()
+            } else {
+              await tx.insert(tournamentWinners)
+              .values({
+                tournament: matchData.tournament,
+                participant: winner.participant,
               }).onConflictDoNothing()
             }
           }
         })
 
         return c.json({message: "Updated"}, 200);
-      } catch {
+      } catch (e) {
+        logger.error(e)
         return c.json({ error: "Server error" }, 500);
       }
     }
@@ -165,7 +162,6 @@ export const matchRoute = new Hono<auth_vars>()
         type RES =  ({
           id: number,
           level: number,
-          winner: string | null,
           tournamentId: number,
           tournament: string,
           time: string | null,
@@ -177,7 +173,6 @@ export const matchRoute = new Hono<auth_vars>()
         const res: RES = await tx.select({
           id: match.id,
           level: match.level,
-          winner: user.name,
           tournamentId: tournament.id,
           tournament: tournament.name,
           time: tournament.time,
@@ -186,7 +181,6 @@ export const matchRoute = new Hono<auth_vars>()
           .innerJoin(match,eq(matchParticipant.match,match.id))
           .innerJoin(participant,eq(matchParticipant.participant,participant.id))
           .innerJoin(tournament,eq(participant.tournament,tournament.id))
-          .leftJoin(user,eq(match.winner,user.id))
           .where(eq(participant.user,userId))
           .orderBy(asc(match.id))
           .limit(limit)

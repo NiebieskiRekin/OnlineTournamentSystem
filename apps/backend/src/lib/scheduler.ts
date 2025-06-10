@@ -250,6 +250,8 @@ export async function createGroups(tournamentId: number) {
       }
     }
 
+    await tx.update(participant).set({score: 0}).where(eq(participant.tournament,tournamentId))
+
     await tx.update(tournament).set({
       groupsCreated: true
     }).where(eq(tournament.id, tournamentId));

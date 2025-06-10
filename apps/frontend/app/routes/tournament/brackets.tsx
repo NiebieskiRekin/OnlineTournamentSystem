@@ -1,6 +1,5 @@
 import { CircularProgress } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { useParams } from "react-router";
 import EliminationsBrackets from "~/components/EliminationsBrackets";
 import apiClient from "~/lib/api-client";
@@ -390,11 +389,10 @@ import { queryKeys, parseError } from "~/lib/queries";
 // };
 
 export default function Bracket(){
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-    const { id } = useParams();
+  const { id } = useParams();
   
   
-  const { data: matches, isLoading: isLoadingBrackets, error: fetchError, refetch } = useQuery({
+  const { data: matches, isLoading: isLoadingBrackets, error } = useQuery({
     queryKey: queryKeys.LIST_BRACKETS_FOR_TOURNAMENT(id!).queryKey,
     queryFn: async () => {
         const response = await apiClient.api.tournament[':id{[0-9]+}'].scoreboard.$get({
@@ -416,6 +414,10 @@ export default function Bracket(){
       },
   });
 
-  const result = matches ? (<EliminationsBrackets matches={matches.data} onMatchClick={()=>{}} onPartyClick={()=>{}} />) : <CircularProgress />;
+  if (error){
+    return <p>Error! {error.message}</p>
+  }
+
+  const result = (!isLoadingBrackets && matches) ? (<EliminationsBrackets matches={matches.data} onMatchClick={()=>{}} onPartyClick={()=>{}} />) : <CircularProgress />;
   return result
 }

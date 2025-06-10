@@ -110,6 +110,7 @@ export default function EliminationsBrackets({matches, onMatchClick, onPartyClic
           )}
         />
       )}
+      
     </Box>
     )
   }

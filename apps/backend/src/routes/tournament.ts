@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
@@ -32,13 +31,10 @@ export const tournamentRoute = new Hono<auth_vars>()
         const header = await db.select({
           id: match.id,
           level: match.level,
-          winner: user.name,
-          startTime: match.time,
           state: match.state,
           nextMatchId: match.nextMatch,
         })
         .from(match)
-        .leftJoin(user,eq(match.winner,user.id))
         .where(eq(match.tournament,id))
 
         // Get participants for each match
@@ -59,8 +55,6 @@ export const tournamentRoute = new Hono<auth_vars>()
           return {
             id: h.id,
             level: h.level,
-            winner: h.winner,
-            startTime: h.startTime ?? "",
             state: h.state,
             nextMatchId: h.nextMatchId,
             href: `/matches/${h.id}`,

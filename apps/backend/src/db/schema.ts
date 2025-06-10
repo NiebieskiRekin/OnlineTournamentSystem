@@ -90,15 +90,13 @@ export const participant = pgTable("participant", {
 });
 
 export const matchState = pgEnum("match_state", [
-  'NO_PARTY' , 'PLAYED' , 'NO_SHOW'
+  'NO_PARTY' , 'PLAYED'
 ])
 
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
-  winner: text("winner").references(()=>user.id,{onDelete:"cascade"}),
   level: integer("level").notNull().default(0),
-  time: timestamp("time", {mode: "string", withTimezone: true}),
   state: matchState("state").notNull().default("NO_PARTY"),
   nextMatch: integer("next_match")
 }, (table)=>[
@@ -110,7 +108,7 @@ export const match = pgTable("match", {
 ]);
 
 export const matchParticipantState = pgEnum("match_participant_state", [
-  'WON', 'LOST', 'DRAW', 'NOT_PLAYED'
+  'WON', 'LOST','NOT_PLAYED'
 ]);
 
 
