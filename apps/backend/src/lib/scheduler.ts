@@ -1,4 +1,4 @@
-// import cron from "node-cron";
+import cron from "node-cron";
 import { tournament, participant, match, matchParticipant } from "../db/schema";
 import { db } from "../db";
 import {eq, and, lt, desc} from "drizzle-orm"
@@ -106,17 +106,21 @@ export async function getTournamentsForGrouping(): Promise<number[]> {
 }
 
 // every 5th minute
-// cron.schedule("*/5 * * * *", () => { 
-//     (getTournamentsForGrouping()).then((tournaments) =>{
-//       logger.info("Starting cron task - generating groups")
-//       for (const tournament of tournaments){
-//         createGroups(tournament).then(()=>{
-//           logger.info("Groups created for tournament "+tournament);
-//         }).catch(error => {
-//           logger.error(error);
-//         })
-//       }
-//     }).catch(error => {
-//       logger.error(error);
-//     })
-// });
+cron.schedule("*/5 * * * *", () => { 
+    (getTournamentsForGrouping()).then(async (tournaments) =>{
+      logger.info("Starting cron task - generating groups")
+      for (const tournament of tournaments){
+        try{
+          if (await createGroups(tournament)){
+            logger.info("Groups created for tournament "+tournament);
+          } else {
+            throw Error("Not enough participants");
+          }
+        } catch (error){
+          logger.error(error)
+        }
+      }
+    }).catch(error => {
+      logger.error(error);
+    })
+});
