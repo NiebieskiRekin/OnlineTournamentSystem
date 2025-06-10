@@ -281,12 +281,13 @@ cron.schedule("*/5 * * * *", () => {
           if (await createGroups(tournament)){
             logger.info("Groups created for tournament "+tournament);
           } else {
-            throw Error("Not enough participants");
+            logger.error("Not enough participants "+tournament);
           }
         } catch (error){
           logger.error(error)
         }
       }
+      logger.info("Finished cron task - generating groups")
     }).catch(error => {
       logger.error(error);
     })
