@@ -113,7 +113,6 @@ const matchUpdateSchema = createUpdateSchema(match).required({
 });
 const matchInsertSchema = createInsertSchema(match).omit({
     id: true,
-    winner: true
 });
 const matchQueryParams = z.object({
     pageIndex: z.number({coerce: true}).default(0),

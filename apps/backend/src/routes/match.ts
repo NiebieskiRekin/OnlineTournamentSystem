@@ -1,14 +1,31 @@
 import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
+  matchInsertSchema,
+  matchParticipantStateSchema,
   matchQueryParams,
   MatchType
 } from "@/backend/db/types";
-import { match, matchParticipant, participant, tournament, user } from "../db/schema";
+import { match, matchParticipant, matchParticipantState, participant, tournament, user } from "../db/schema";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, and, ne} from "drizzle-orm";
 import logger from "../lib/logger";
+import { z } from "zod";
+
+
+const schema = matchInsertSchema.omit({
+  tournament: true,
+  nextMatch: true,
+  level: true,
+}).merge(z.object({
+  participants: z.array(z.object({
+    id: z.number(),
+    score: z.number().optional(),
+    status: matchParticipantStateSchema,
+    winner: z.boolean()
+  }))
+}));
 
 export const matchRoute = new Hono<auth_vars>()
   .get(
@@ -47,6 +64,81 @@ export const matchRoute = new Hono<auth_vars>()
 
         const res: MatchType = {...header, startTime: header.startTime ?? "",href: `/matches/${id}`, participants: participants}
         return c.json(res, 200);
+      } catch {
+        return c.json({ error: "Server error" }, 500);
+      }
+    }
+  )
+  .post(
+    "/:id{[0-9]+}",
+    zValidator("json", schema),
+    async (c) => {
+      try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+
+        const id = Number.parseInt(c.req.param("id"));
+        const req = c.req.valid("json");
+
+        const matchData = await db.select().from(match).where(eq(match.id,id)).then((res)=>res[0]);
+
+        if (!matchData){
+          return c.json({error: "Not found"}, 404);
+        }
+
+        const participantData = (await db.select().from(matchParticipant).innerJoin(participant,eq(matchParticipant.participant,participant.id)).where(eq(matchParticipant.match,id)));
+
+        const isParticipant = participantData.some(p => p.participant.user === user_session.id);
+
+        if (!isParticipant && matchData.state !== "NO_PARTY"){
+           return c.json({error: "Unauthorized"}, 401);
+        }
+
+        await db.transaction(async (tx) => {
+          // Update the current match
+          await tx.update(match)
+            .set(req)
+            .where(eq(match.id, id));
+
+          // Update matchParticipant states and scores
+          if (req.participants && req.participants.length > 0) {
+            for (const p of req.participants) {
+              await tx.update(matchParticipant)
+                .set({ state: p.status, score: p.score })
+                .where(and(eq(matchParticipant.match, id), eq(matchParticipant.participant, p.id)));
+
+              // Update participant score in the participant table if score is provided
+              if (p.score !== undefined && p.score !== null) {
+                 await tx.update(participant)
+                   .set({ score: p.score })
+                   .where(eq(participant.id, p.id));
+              }
+            }
+          }
+
+          // Update the next match if the current match has a winner
+          if (req.winner && matchData.nextMatch) {
+            await tx.update(match)
+              .set({ winner: req.winner })
+              .where(eq(match.id, matchData.nextMatch));
+
+            // Add the winner of the current match as a participant in the next match
+            
+            const winner_participant = req.participants.find(p => p.winner);
+            if (winner_participant){
+              await tx.insert(matchParticipant)
+              .values({
+                match: matchData.nextMatch,
+                participant: winner_participant.id,
+              }).onConflictDoNothing()
+            }
+          }
+        })
+
+        return c.json({message: "Updated"}, 200);
       } catch {
         return c.json({ error: "Server error" }, 500);
       }
