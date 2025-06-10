@@ -18,7 +18,6 @@ import logger from "../lib/logger";
 import z from "zod";
 import { createGroups } from "../lib/scheduler";
 
-
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
   .get(
