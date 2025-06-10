@@ -6,7 +6,7 @@ import logger from "./logger";
 
 function repeatArray<Type>(array: Array<Type>, count: number): typeof array {
   let out: typeof array = [];
-  while (--count) {
+  while (count--) {
     out = out.concat(array);
   }
   return out
@@ -84,6 +84,7 @@ export async function createGroups(tournamentId: number) {
 
     logger.info("match participants "+JSON.stringify(matchParticipants))
     await tx.insert(matchParticipant).values(matchParticipants)
+    logger.info("added match participants")
     await tx.update(tournament).set({
       groupsCreated: true
     }).where(eq(tournament.id,tournamentId))

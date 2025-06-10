@@ -92,13 +92,13 @@ export const participant = pgTable("participant", {
 export const match = pgTable("match", {
 	id: serial().primaryKey(),
 	tournament: integer("tournament").notNull().references(()=>tournament.id,{onDelete: "cascade"}),
-  winner: text("participant").references(()=>user.id,{onDelete:"cascade"}),
+  winner: text("winner").references(()=>user.id,{onDelete:"cascade"}),
   level: integer("level").notNull().default(0),
 });
 
 export const matchParticipant = pgTable("match_participant", {
   participant: integer("participant").notNull().references(()=>participant.id,{onDelete:"cascade"}),
-  match: integer("match").notNull().references(()=>participant.id,{onDelete:"cascade"}),
+  match: integer("match").notNull().references(()=>match.id,{onDelete:"cascade"}),
 }, (table) => [
   primaryKey({ columns: [table.participant, table.match]})]);
 
