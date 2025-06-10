@@ -123,9 +123,11 @@ export const matchRoute = new Hono<auth_vars>()
           return c.json({error: "Already calculated"}, 400);
         }
 
-        await createGroups(tournamentId);
-        
-        return c.json({ message: "Success"}, 200);
+        if (await createGroups(tournamentId)){
+          return c.json({ message: "Success"}, 200);
+        } else {
+          return c.json({ error: "Not enough participants" }, 400);
+        }
       } catch {
         return c.json({ error: "Błąd serwera" }, 500);
       }

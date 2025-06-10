@@ -78,6 +78,7 @@ export const tournament = pgTable("tournament", {
     check("participants_cannot_be_greater_than_max", lte(table.participants,table.maxParticipants)),
     check("cannot_host_in_the_past", gte(table.time,sql`CURRENT_TIMESTAMP`)),
     check("cannot_apply_in_the_past", gte(table.applicationDeadline,sql`CURRENT_TIMESTAMP`)),
+    check("minimum_2_participants", sql`${table.maxParticipants} >= 2`),
 ]);
 
 export const participant = pgTable("participant", {

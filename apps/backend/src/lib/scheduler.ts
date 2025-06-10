@@ -1,9 +1,8 @@
 // import cron from "node-cron";
 import { tournament, participant, match, matchParticipant } from "../db/schema";
 import { db } from "../db";
-// import {eq, and, lt, desc} from "drizzle-orm"
-import {eq, desc} from "drizzle-orm"
-// import logger from "./logger";
+import {eq, and, lt, desc} from "drizzle-orm"
+import logger from "./logger";
 
 function repeatArray<Type>(array: Array<Type>, count: number): typeof array {
   let out: typeof array = [];
@@ -14,13 +13,20 @@ function repeatArray<Type>(array: Array<Type>, count: number): typeof array {
 };
 
 export async function createGroups(tournamentId: number) {
-  await db.transaction(async tx => {
+  logger.info("Creating groups for tournament "+tournamentId)
+  const res = await db.transaction(async tx => {
     const participants = await tx.select({
       p: participant.id,
       s: participant.score
     }).from(participant)
     .where(eq(participant.tournament,tournamentId))
     .orderBy(desc(participant.score));
+
+    logger.info("participants: "+JSON.stringify(participants))
+
+    if (participants.length < 2){
+      return false;
+    }
   
     const grouped: Array<typeof participants> = []
     if (participants.length <= 5 ){
@@ -52,14 +58,21 @@ export async function createGroups(tournamentId: number) {
         }
       }
     }
+
+    if (grouped.length == 0){
+      return false;
+    }
+
+    logger.info("grouped: "+JSON.stringify(grouped))
     
     const baseMatch = {
       tournament: tournamentId,
       level: 0
     };
     const baseMatches = repeatArray<typeof baseMatch>([baseMatch],grouped.length)
-    const matches = await tx.insert(match).values(baseMatches).returning({id: match.id});
+    logger.info("baseMatches: "+JSON.stringify(baseMatches))
 
+    const matches = await tx.insert(match).values(baseMatches).returning({id: match.id});
     const matchParticipants = matches.map((m,i) => {
       return grouped[i].map(p => {
         return {
@@ -68,22 +81,28 @@ export async function createGroups(tournamentId: number) {
         }
       })
     }).flat()
+
+    logger.info("match participants "+JSON.stringify(matchParticipants))
     await tx.insert(matchParticipant).values(matchParticipants)
     await tx.update(tournament).set({
       groupsCreated: true
     }).where(eq(tournament.id,tournamentId))
+    logger.info("Groups created for tournament "+tournamentId)
+    return true
   })
+
+  return res
 }
 
-// async function getTournamentsForGrouping(): Promise<number[]> {
-//   const tournaments = await db.select({
-//     tournament: tournament.id
-//   }).from(tournament)
-//   .where(and(eq(tournament.groupsCreated,false),lt(tournament.applicationDeadline,new Date().toDateString())))
-//   .orderBy(tournament.id);
+export async function getTournamentsForGrouping(): Promise<number[]> {
+  const tournaments = await db.select({
+    tournament: tournament.id
+  }).from(tournament)
+  .where(and(eq(tournament.groupsCreated,false),lt(tournament.applicationDeadline,new Date().toDateString())))
+  .orderBy(tournament.id);
 
-//   return tournaments.map(t => t.tournament);
-// }
+  return tournaments.map(t => t.tournament);
+}
 
 // every 5th minute
 // cron.schedule("*/5 * * * *", () => { 
