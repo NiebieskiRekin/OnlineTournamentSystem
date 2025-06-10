@@ -18,6 +18,7 @@ import {
   ImageListItem,
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import GeneratingTokensIcon from '@mui/icons-material/GeneratingTokens';
 import {
     queryKeys,
     parseError,
@@ -117,6 +118,42 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
     }
   };
 
+  const generateTournamentMatchesMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiClient.api.match[':tournamentId{[0-9]+}'].$post({param:{tournamentId:id}})
+
+      if (!response.ok){
+        const result = await response.json();
+        parseError(result)
+      }
+
+      if (response.status == 200){
+          const result = await response.json();
+          return result;
+        } else {
+          throw Error("Something went wrong");
+        }
+    },
+    onSuccess: async (result) => {
+        if (id) {
+          await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENT(id));
+          queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(id));
+        }
+        console.log(result.message)
+        alert(result.message)
+      },
+      onError: (error: Error) => {
+        console.error("Error generating matches:", error);
+        alert(`Error generating matches: ${error.message}`);
+      },
+  })
+
+  const handleGenerateMatches = () => {
+    if (id) {
+      generateTournamentMatchesMutation.mutate(id);
+    }
+  };
+
   useEffect(() => {
     void refetch();
   }, [id, refetch]);
@@ -163,8 +200,19 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
               disabled={!isOrganizer || deleteMutation.isPending}
               onClick={() => setOpenDeleteDialog(true)}
               startIcon={<DeleteIcon />}
+              sx={{ mr: 1 }}
             >
               Delete
+            </Button>
+            <Button 
+              variant="outlined"
+              color="secondary"
+              startIcon={<GeneratingTokensIcon />}
+              disabled={!isOrganizer || deleteMutation.isPending || generateTournamentMatchesMutation.isPending || tournamentData.groupsCreated}
+              onClick={handleGenerateMatches}
+              sx={{ mr: 1 }}
+            >
+              {generateTournamentMatchesMutation.isPending ? <CircularProgress size={20} /> : 'Generate Matches'}
             </Button>
           </Box>
         </Box>

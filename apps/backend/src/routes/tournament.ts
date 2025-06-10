@@ -259,6 +259,7 @@ export const tournamentRoute = new Hono<auth_vars>()
             applicationDeadline: tournament.applicationDeadline,
             location: tournament.location,
             sponsorLogos: tournament.sponsorLogos,
+            groupsCreated: tournament.groupsCreated
           })
           .from(tournament)
           .leftJoin(user,eq(tournament.organizer,user.id))
