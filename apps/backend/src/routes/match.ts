@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { db} from "@/backend/db";
 import {
-  matchQueryParams
+  matchQueryParams,
+  MatchType
 } from "@/backend/db/types";
 import { match, matchParticipant, participant, tournament, user } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
@@ -24,10 +25,9 @@ export const matchRoute = new Hono<auth_vars>()
           winner: user.name,
           tournamentId: tournament.id,
           tournament: tournament.name,
-          time: match.time,
+          startTime: match.time,
           state: match.state,
-          nextMatch: match.nextMatch,
-
+          nextMatchId: match.nextMatch,
         })
         .from(match)
         .innerJoin(tournament,eq(match.tournament,tournament.id))
@@ -36,16 +36,19 @@ export const matchRoute = new Hono<auth_vars>()
         .then((res)=>res[0])
 
         const participants = await db.select({
-          user: user.name,
-          userId: user.id,
+          name: user.name,
+          user: user.id,
+          id: participant.id,
           score: participant.score,
-          licenceNumber: participant.licenseNumber
+          licenceNumber: participant.licenseNumber,
+          status: matchParticipant.state
         }).from(matchParticipant)
         .innerJoin(participant,eq(matchParticipant.participant,participant.id))
         .innerJoin(user,eq(participant.user,user.id))
         .where(eq(matchParticipant.match,id))
 
-        return c.json({...header, participants: participants}, 200);
+        const res: MatchType = {...header, startTime: header.startTime ?? "",href: `/matches/${id}`, participants: participants}
+        return c.json(res, 200);
       } catch {
         return c.json({ error: "Server error" }, 500);
       }

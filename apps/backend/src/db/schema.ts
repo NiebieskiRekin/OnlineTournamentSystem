@@ -90,7 +90,7 @@ export const participant = pgTable("participant", {
 });
 
 export const matchState = pgEnum("match_state", [
-  'NO_PARTY' , 'DONE' , 'SCORE_DONE'
+  'NO_PARTY' , 'PLAYED' , 'NO_SHOW'
 ])
 
 export const match = pgTable("match", {

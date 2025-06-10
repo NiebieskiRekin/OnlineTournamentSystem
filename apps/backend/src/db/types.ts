@@ -4,7 +4,7 @@ import {
     createInsertSchema,
     createUpdateSchema,
   } from "drizzle-zod";
-import { match, participant, tournament } from "./schema";
+import { match, matchParticipantState, participant, tournament } from "./schema";
 
 const literalSchema = z.union( [
     z.string(),
@@ -131,3 +131,28 @@ export {
     tournamentColumnFilters, tournamentSorting,
     stringToJSONSchema, matchQueryParams
 };
+
+export const matchParticipantStateSchema = createSelectSchema(matchParticipantState)
+
+export type ParticipantType = {
+  id: number;
+  user: string;
+  score: number | null;
+  licenceNumber?: string;
+  isWinner?: boolean;
+  name?: string;
+  status?: z.infer<typeof matchParticipantStateSchema> |  null;
+  resultText?: string | null;
+};
+
+export type MatchType = {
+  id: number | string;
+  href?: string;
+  name?: string;
+  nextMatchId: number | string | null;
+  nextLooserMatchId?: number | string;
+  tournamentRoundText?: string;
+  startTime: string;
+  state: "PLAYED" | "NO_SHOW" | "WALK_OVER" | "NO_PARTY";
+  participants: ParticipantType[];
+}

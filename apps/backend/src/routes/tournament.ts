@@ -7,9 +7,10 @@ import {
   tournamentQueryParams,
   participantInsertSchema,
   tournamentColumnFilters, 
-  tournamentSorting
+  tournamentSorting,
+  MatchType
 } from "@/backend/db/types";
-import { participant, tournament, user } from "../db/schema";
+import { match, participant, tournament, user, matchParticipant } from "../db/schema";
 import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
@@ -19,9 +20,64 @@ import logger from "../lib/logger";
 import z from "zod";
 import { createGroups } from "../lib/scheduler";
 
+
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
   .use("*",auth_middleware)
+  .get(
+    "/:id{[0-9]+}/scoreboard",
+    async (c) => {
+      try {
+        const id = Number.parseInt(c.req.param("id"));
+
+        // Get all matches
+        const header = await db.select({
+          id: match.id,
+          level: match.level,
+          winner: user.name,
+          startTime: match.time,
+          state: match.state,
+          nextMatchId: match.nextMatch,
+        })
+        .from(match)
+        .leftJoin(user,eq(match.winner,user.id))
+        .where(eq(match.tournament,id))
+
+        // Get participants for each match
+        const participants = await db.select({
+          name: user.name,
+          user: user.id,
+          id: participant.id,
+          score: participant.score,
+          status: matchParticipant.state,
+          match: matchParticipant.match
+        }).from(matchParticipant)
+        .innerJoin(participant,eq(matchParticipant.participant,participant.id))
+        .innerJoin(user,eq(participant.user,user.id))
+        .where(eq(match.tournament,id))
+
+
+        const result: MatchType[] = header.map((h)=>{
+          return {
+            id: h.id,
+            level: h.level,
+            winner: h.winner,
+            startTime: h.startTime ?? "",
+            state: h.state,
+            nextMatchId: h.nextMatchId,
+            href: `/matches/${h.id}`,
+            participants: participants.filter((p)=>{
+              return p.match === h.id
+            })
+          }
+        })
+
+        return c.json({data: result, meta: {totalCount: result.length}})
+      } catch {
+        return c.json({ error: "Server error" }, 500);
+      }
+    }
+  )
   .get(
     "/",
     zValidator(
