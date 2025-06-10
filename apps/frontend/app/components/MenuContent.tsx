@@ -27,6 +27,7 @@ const secondaryListItems = [
 export default function MenuContent() {
   const navigate = useNavigate();
   const session = authClient.useSession()
+  const [selected, setSelected] = React.useState(0);
 
   const mainListItems = [
     { text: 'Home', icon: <HomeRoundedIcon />, link: "/" },
@@ -40,7 +41,7 @@ export default function MenuContent() {
       <List dense>
         {mainListItems.map((item, index) => (
           <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton selected={index === 0} onClick={()=>navigate(item.link)}>
+            <ListItemButton selected={index === selected} onClick={()=>{setSelected(index); navigate(item.link)}}>
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
