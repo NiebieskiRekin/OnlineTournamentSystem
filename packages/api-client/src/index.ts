@@ -5,7 +5,7 @@ export {
   matchSelectSchema, matchUpdateSchema, matchInsertSchema, type Match,
   basicErrorSchema, sorting, sponsorLogos,
   tournamentColumnFilters, tournamentSorting,
-  stringToJSONSchema, matchQueryParams
+  stringToJSONSchema, matchQueryParams, matchParticipantStateSchema
 } from "@webdev-project/backend/schema";
 import {z} from "zod";
 import { hc } from "hono/client";
