@@ -15,7 +15,7 @@ import {
   Grid,
 } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { tournamentInsertSchema, tournamentUpdateSchema, type Tournament } from '@webdev-project/api-client';
 import {
     queryKeys,
@@ -193,7 +193,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
                 name="time"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <DatePicker
+                  <DateTimePicker
                     {...field}
                     value={dayjs(field.value)}
                     label="Time"
@@ -215,7 +215,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
                 name="applicationDeadline"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <DatePicker
+                  <DateTimePicker
                     {...field}
                     value={dayjs(field.value)}
                     label="Application deadline"

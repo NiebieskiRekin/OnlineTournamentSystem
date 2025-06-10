@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import { LoginContainer } from '~/components/ui/login-container';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { authClient } from '~/lib/auth';
+import { useSnackbar } from 'notistack';
 
 
 type Inputs = {
@@ -22,6 +23,7 @@ type Inputs = {
 export default function ResetPassword() {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
+  const { enqueueSnackbar } = useSnackbar();
 
   const {
       register,
@@ -32,7 +34,8 @@ export default function ResetPassword() {
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
       const token = new URLSearchParams(window.location.search).get("token");
       if (!token) {
-        alert('Token not found');
+        enqueueSnackbar('Token not found', { variant: 'error' });
+        console.error('Token not found')
         return;
       }
       if (!data.password || data.password.length < 6) {
@@ -43,7 +46,13 @@ export default function ResetPassword() {
         setPasswordError(false);
         setPasswordErrorMessage('');
       }
-      await authClient.resetPassword({newPassword: data.password, token})
+      const resp = await authClient.resetPassword({newPassword: data.password, token})
+
+      if (resp.error){
+        enqueueSnackbar(resp.error.message, { variant: 'error' })
+      } else {
+        enqueueSnackbar("Password changed", { variant: 'success' })
+      }
     }
 
 

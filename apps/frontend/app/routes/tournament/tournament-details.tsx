@@ -25,11 +25,12 @@ import {
 } from "../../lib/queries";
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
-import { useParams, Link as RouterLink, useNavigate } from 'react-router';
+import { useParams, Link as RouterLink, useNavigate, Link } from 'react-router';
 import { sponsorLogos } from '@webdev-project/api-client';
 import {z} from "zod";
 import TournamentParticipantsTable from '~/components/ParticipantsTable';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import { useSnackbar } from 'notistack';
 
 
 interface TournamentDetailsPageProps {
@@ -44,13 +45,13 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
   const { id } = useParams();
   const navigate = useNavigate()
   const [parsedSponsorLogos, setParsedSponsorLogos] = useState<z.infer<typeof sponsorLogos>>([])
+  const { enqueueSnackbar } = useSnackbar();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError, refetch } = useQuery({
     queryKey: queryKeys.LIST_TOURNAMENT(id ?? "").queryKey,
     queryFn: async () => {
         setParsedSponsorLogos([])
-        console.log(id)
         const response = await apiClient.api.tournament[':id{[0-9]+}'].$get({
             param: {
                 id: id ?? ""
@@ -68,7 +69,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
               if (logos.success){
                 setParsedSponsorLogos(logos.data)
               } else {
-                alert(logos.error)
+                enqueueSnackbar(logos.error.message, { variant: 'error' });
               }
             }
             return result;
@@ -109,7 +110,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
       onClose?.();
     },
     onError: (error: Error) => {
-      console.error("Error deleting tournament:", error);
+      enqueueSnackbar("Error deleting tournament: "+error.message, { variant: 'error' });
+      console.error("Error deleting tournament: "+error.message);
       setOpenDeleteDialog(false);
     },
   });
@@ -145,12 +147,12 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
           await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENT(id));
           queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(id));
         }
+        enqueueSnackbar(result.message, { variant: 'success' });
         console.log(result.message)
-        alert(result.message)
       },
       onError: (error: Error) => {
+        enqueueSnackbar("Error generating matches for tournament: "+error.message, { variant: 'error' });
         console.error("Error generating matches:", error);
-        alert(`Error generating matches: ${error.message}`);
       },
   })
 
@@ -210,16 +212,19 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
             >
               Delete
             </Button>
-            {tournamentData.groupsCreated && (<Button 
-              variant="outlined"
-              color="secondary"
-              startIcon={<AccountTreeIcon/>}
-              disabled={deleteMutation.isPending}
-              onClick={()=>navigate(`/tournament/${id}/scoreboard`)}
-              sx={{ mr: 1 }}
-            >
-              View Matches
-            </Button>)}
+            {tournamentData.groupsCreated && (
+            <Link to={`/tournament/${id}/scoreboard`}>
+              <Button 
+                variant="outlined"
+                color="secondary"
+                startIcon={<AccountTreeIcon/>}
+                disabled={deleteMutation.isPending}
+                sx={{ mr: 1 }}
+              >
+                View Matches
+              </Button>
+            </Link>  
+            )}
             {!tournamentData.groupsCreated && (<Button 
               variant="outlined"
               color="secondary"

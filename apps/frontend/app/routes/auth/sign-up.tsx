@@ -14,6 +14,7 @@ import { authClient } from '~/lib/auth';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Card } from '~/components/ui/card';
 import { LoginContainer } from '~/components/ui/login-container';
+import { useSnackbar } from 'notistack';
 
 type Inputs = {
   email: string
@@ -28,6 +29,7 @@ export default function SignUp() {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+  const { enqueueSnackbar } = useSnackbar();
 
   const {
       register,
@@ -39,9 +41,17 @@ export default function SignUp() {
       if (emailError || passwordError) {
         return;
       }
-      await authClient.signUp.email({
+      const res = await authClient.signUp.email({
         email: data.email, password: data.password, name: data.name, callbackURL: "http://localhost:5173/login"
-    });
+      });
+
+      if (res.error){
+        console.log(res.error)
+        enqueueSnackbar(res.error.message, { variant: 'error' })
+      } else {
+        enqueueSnackbar("Please check your email:  " + res.data.user.email, { variant: 'success' })
+      }
+
     }
 
   const validateInputs = () => {

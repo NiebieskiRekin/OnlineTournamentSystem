@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   isRouteErrorResponse,
   Links,
@@ -18,7 +15,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/en";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { Box, CircularProgress } from "@mui/material";
+import { SnackbarProvider } from "notistack";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -51,10 +50,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
       <QueryClientProvider client={queryClient}>
+      <SnackbarProvider maxSnack={3}>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
           {children}
         </LocalizationProvider>
         <ReactQueryDevtools initialIsOpen={false} />
+        </SnackbarProvider>
         </QueryClientProvider>
         <ScrollRestoration />
         <Scripts />
