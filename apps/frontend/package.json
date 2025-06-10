@@ -24,6 +24,7 @@
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
     "@react-spring/web": "^10.0.1",
+    "@tanstack/react-query": "^5.80.6",
     "@tanstack/react-query-devtools": "^5.80.6",
     "@webdev-project/api-client": "*",
     "better-auth": "^1.2.8",
@@ -38,9 +39,8 @@
     "react-hook-form": "^7.57.0",
     "react-router": "^7.5.3",
     "react-tournament-brackets": "^1.0.41",
-    "tailwind-merge": "^3.3.0",
-    "@tanstack/react-query": "^5.80.6",
-    "styled-components": "^4.4.1"
+    "styled-components": "^4.4.1",
+    "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
     "@react-router/dev": "^7.5.3",
