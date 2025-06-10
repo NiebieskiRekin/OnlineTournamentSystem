@@ -11,7 +11,6 @@ import {
   MatchType
 } from "@/backend/db/types";
 import { match, participant, tournament, user, matchParticipant } from "../db/schema";
-import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, or, like, sql, between, gt, and, gte, SQL } from "drizzle-orm";
@@ -23,7 +22,6 @@ import { createGroups } from "../lib/scheduler";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
-  .use("*",auth_middleware)
   .get(
     "/:id{[0-9]+}/scoreboard",
     async (c) => {
@@ -54,7 +52,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         }).from(matchParticipant)
         .innerJoin(participant,eq(matchParticipant.participant,participant.id))
         .innerJoin(user,eq(participant.user,user.id))
-        .where(eq(match.tournament,id))
+        .where(eq(participant.tournament,id))
 
 
         const result: MatchType[] = header.map((h)=>{
@@ -73,7 +71,8 @@ export const tournamentRoute = new Hono<auth_vars>()
         })
 
         return c.json({data: result, meta: {totalCount: result.length}})
-      } catch {
+      } catch (e) {
+        logger.error(e)
         return c.json({ error: "Server error" }, 500);
       }
     }

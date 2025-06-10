@@ -35,7 +35,7 @@ export default function MenuContent() {
     { text: 'Home', icon: <HomeRoundedIcon />, query: "", baseUrl: "/" },
     { text: 'My Tournaments', icon: <AnalyticsRoundedIcon />, query: `?participant=${session.data?.user.id}`, baseUrl: "/" },
     { text: 'My Games', icon: <GamepadRounded />, query: `?participant=${session.data?.user.id}`, baseUrl: "/matches/"},
-    { text: 'Brackets', icon: <AccountTreeIcon/>, query: "", baseUrl: "/brackets"}
+    // { text: 'Brackets', icon: <AccountTreeIcon/>, query: "", baseUrl: "/brackets"}
     // { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
   ];
 

@@ -5,14 +5,12 @@ import {
   MatchType
 } from "@/backend/db/types";
 import { match, matchParticipant, participant, tournament, user } from "../db/schema";
-import { auth_middleware } from "@/backend/middleware/auth-middleware";
 import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, and, ne} from "drizzle-orm";
 import logger from "../lib/logger";
 
 export const matchRoute = new Hono<auth_vars>()
-  .use("*",auth_middleware)
   .get(
     "/:id{[0-9]+}",
     async (c) => {

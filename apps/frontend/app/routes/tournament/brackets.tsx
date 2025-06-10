@@ -1,3 +1,4 @@
+import { CircularProgress } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useParams } from "react-router";
@@ -415,6 +416,6 @@ export default function Bracket(){
       },
   });
 
-  const result = matches ? (<EliminationsBrackets matches={matches.data} onMatchClick={()=>{}} onPartyClick={()=>{}} />) : <div></div>
+  const result = matches ? (<EliminationsBrackets matches={matches.data} onMatchClick={()=>{}} onPartyClick={()=>{}} />) : <CircularProgress />;
   return result
 }

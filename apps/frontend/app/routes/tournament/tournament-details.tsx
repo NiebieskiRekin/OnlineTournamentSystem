@@ -25,10 +25,11 @@ import {
 } from "../../lib/queries";
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
-import { useParams, Link as RouterLink } from 'react-router';
+import { useParams, Link as RouterLink, useNavigate } from 'react-router';
 import { sponsorLogos } from '@webdev-project/api-client';
 import {z} from "zod";
-import TournamentParticipantsTable from '~/components/ParticipantsTable'; // Adjust path as needed
+import TournamentParticipantsTable from '~/components/ParticipantsTable';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 
 interface TournamentDetailsPageProps {
@@ -41,6 +42,7 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const { id } = useParams();
+  const navigate = useNavigate()
   const [parsedSponsorLogos, setParsedSponsorLogos] = useState<z.infer<typeof sponsorLogos>>([])
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -208,7 +210,17 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
             >
               Delete
             </Button>
-            <Button 
+            {tournamentData.groupsCreated && (<Button 
+              variant="outlined"
+              color="secondary"
+              startIcon={<AccountTreeIcon/>}
+              disabled={deleteMutation.isPending}
+              onClick={()=>navigate(`/tournament/${id}/scoreboard`)}
+              sx={{ mr: 1 }}
+            >
+              View Matches
+            </Button>)}
+            {!tournamentData.groupsCreated && (<Button 
               variant="outlined"
               color="secondary"
               startIcon={<GeneratingTokensIcon />}
@@ -217,7 +229,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
               sx={{ mr: 1 }}
             >
               {generateTournamentMatchesMutation.isPending ? <CircularProgress size={20} /> : 'Generate Matches'}
-            </Button>
+            </Button>)}
+            
           </Box>
         </Box>
         <Divider sx={{ my: 2 }} />
