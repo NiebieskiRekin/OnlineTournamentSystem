@@ -25,7 +25,7 @@ export const matchRoute = new Hono<auth_vars>()
         const page = pageIndex || 0
         const limit = pageSize || 20
         const offset = page * limit
-        const userId = rawUserId || c.get("user")?.id
+        const userId = rawUserId || c.get("session")?.userId
 
         if (!userId){
           return c.json({error: "Invalid request"}, 400);
@@ -38,11 +38,7 @@ export const matchRoute = new Hono<auth_vars>()
           tournamentId: number,
           tournament: string,
           time: string | null,
-        } & {
-          participants?: {
-              name:string | null,
-              id: string
-          }[]
+          participants?: string,
         })[]
 
       const [result, totalCount] = await db.transaction(async (tx) => {
@@ -77,7 +73,9 @@ export const matchRoute = new Hono<auth_vars>()
             )
 
             subquery.then((res)=>{
-              row.participants = res
+              row.participants = res.map((p)=>{
+                return p.name
+              }).join(", ")
             }).catch((err)=>{
               logger.error(err)
             })
