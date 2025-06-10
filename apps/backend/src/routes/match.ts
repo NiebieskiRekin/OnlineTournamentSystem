@@ -9,10 +9,48 @@ import { auth_vars } from "../lib/auth";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, count, and, ne} from "drizzle-orm";
 import logger from "../lib/logger";
-import { createGroups } from "../lib/scheduler";
 
 export const matchRoute = new Hono<auth_vars>()
   .use("*",auth_middleware)
+  .get(
+    "/:id{[0-9]+}",
+    async (c) => {
+      try {
+        const id = Number.parseInt(c.req.param("id"));
+
+        const header = await db.select({
+          id: match.id,
+          level: match.level,
+          winner: user.name,
+          tournamentId: tournament.id,
+          tournament: tournament.name,
+          time: match.time,
+          state: match.state,
+          nextMatch: match.nextMatch,
+
+        })
+        .from(match)
+        .innerJoin(tournament,eq(match.tournament,tournament.id))
+        .leftJoin(user,eq(match.winner,user.id))
+        .where(eq(match.id,id))
+        .then((res)=>res[0])
+
+        const participants = await db.select({
+          user: user.name,
+          userId: user.id,
+          score: participant.score,
+          licenceNumber: participant.licenseNumber
+        }).from(matchParticipant)
+        .innerJoin(participant,eq(matchParticipant.participant,participant.id))
+        .innerJoin(user,eq(participant.user,user.id))
+        .where(eq(matchParticipant.match,id))
+
+        return c.json({...header, participants: participants}, 200);
+      } catch {
+        return c.json({ error: "Server error" }, 500);
+      }
+    }
+  )
   .get(
     "/",
     zValidator(
@@ -97,39 +135,7 @@ export const matchRoute = new Hono<auth_vars>()
         return c.json(response, 200);
       } catch (e) {
         logger.error(e)
-        return c.json({ error: "Błąd serwera" }, 500);
-      }
-    }
-  )
-  .post( // Trigger matchmaking for the specified tournament
-    "/:tournamentId{[0-9]+}",
-    async (c) => {
-      try {
-        const user_session = c.get("user");
-        const session = c.get("session");
-        if (!session || !user_session){
-          return c.json({error: "Unauthorized"}, 401);
-        }
-
-        const tournamentId = Number.parseInt(c.req.param("tournamentId"));
-
-        const info = await db.select().from(tournament).where(eq(tournament.id,tournamentId));
-
-        if (info.length === 0 || info[0].organizer !== user_session.id){
-          return c.json({error: "Not found"}, 404);
-        }
-
-        if (info[0].groupsCreated){
-          return c.json({error: "Already calculated"}, 400);
-        }
-
-        if (await createGroups(tournamentId)){
-          return c.json({ message: "Success"}, 200);
-        } else {
-          return c.json({ error: "Not enough participants" }, 400);
-        }
-      } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )

@@ -120,8 +120,12 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
 
   const generateTournamentMatchesMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.api.match[':tournamentId{[0-9]+}'].$post({param:{tournamentId:id}})
-
+      const response = await apiClient.api.tournament[':id{[0-9]+}'].generate_matches.$post({
+        param: {
+          id: id
+        }
+      });
+      
       if (!response.ok){
         const result = await response.json();
         parseError(result)

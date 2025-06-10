@@ -17,6 +17,7 @@ import { asc, eq, count, or, like, sql, between, gt, and, gte, SQL } from "drizz
 import { addHours } from "../lib/date-utils";
 import logger from "../lib/logger";
 import z from "zod";
+import { createGroups } from "../lib/scheduler";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const tournamentRoute = new Hono<auth_vars>()
@@ -171,7 +172,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         return c.json(response, 200);
       } catch (e) {
         logger.error(e)
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
@@ -200,7 +201,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         return c.json(result, 200);
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
@@ -235,7 +236,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         return c.json(result, 200);
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
@@ -286,7 +287,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         return c.json({...result, participantsList: participants});
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
@@ -319,7 +320,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         return c.json(result);
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
@@ -338,7 +339,7 @@ export const tournamentRoute = new Hono<auth_vars>()
         const response = {data: res, meta: {totalCount: tournamentData.participants, maxParticipants: tournamentData.maxParticipants}}
         return c.json(response, 200);
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
@@ -376,7 +377,7 @@ export const tournamentRoute = new Hono<auth_vars>()
           participants: res[1].participants
         }, 200);
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
       }
     }
   ).delete(
@@ -411,7 +412,39 @@ export const tournamentRoute = new Hono<auth_vars>()
           participants: res[1].participants
         }, 200);
       } catch {
-        return c.json({ error: "Błąd serwera" }, 500);
+        return c.json({ error: "Server error" }, 500);
+      }
+    }
+  )
+  .post( // Trigger matchmaking for the specified tournament
+    ":id{[0-9]+}/generate_matches",
+    async (c) => {
+      try {
+        const user_session = c.get("user");
+        const session = c.get("session");
+        if (!session || !user_session){
+          return c.json({error: "Unauthorized"}, 401);
+        }
+
+        const tournamentId = Number.parseInt(c.req.param("id"));
+
+        const info = await db.select().from(tournament).where(eq(tournament.id,tournamentId));
+
+        if (info.length === 0 || info[0].organizer !== user_session.id){
+          return c.json({error: "Not found"}, 404);
+        }
+
+        if (info[0].groupsCreated){
+          return c.json({error: "Already calculated"}, 400);
+        }
+
+        if (await createGroups(tournamentId)){
+          return c.json({ message: "Success"}, 200);
+        } else {
+          return c.json({ error: "Not enough participants" }, 400);
+        }
+      } catch {
+        return c.json({ error: "Server error" }, 500);
       }
     }
   )
