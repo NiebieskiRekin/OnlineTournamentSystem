@@ -152,10 +152,6 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         accessorKey: 'score',
         header: 'Score',
       },
-      {
-        accessorKey: 'winner',
-        header: 'Winner',
-      },
     ],[]
   );
 
