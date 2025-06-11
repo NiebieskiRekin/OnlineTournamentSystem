@@ -25,6 +25,7 @@ import {z} from "zod"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { useSnackbar } from 'notistack';
 
 interface TournamentParticipantsTableProps {
   tournamentId: number;
@@ -35,6 +36,7 @@ type ParticipantFormData = z.infer<typeof participantInsertSchema>;
 const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = ({ tournamentId }) => {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate()
+  const { enqueueSnackbar } = useSnackbar();
 
   const {
     data: { data = [], meta } = {},
@@ -45,7 +47,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
     refetch,
   } = useQuery({
     queryKey: [
-      queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey
+      queryKeys.LIST_PARTICIPANTS(tournamentId.toString())
     ],
     queryFn: async () => {
       const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$get({
@@ -67,7 +69,6 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
       }
     },
     placeholderData: keepPreviousData,
-    throwOnError: (error) => error.response?.status >= 500,
   });
 
   const isParticipating = data.find((p)=>p.id == session?.user.id)
@@ -94,11 +95,12 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
         }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey);
+      await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+      enqueueSnackbar("Tournament left successfully", { variant: 'success' });
     },
     onError: (error: Error) => {
       console.error("Error leaving tournament:", error);
-      alert("Error leaving tournament:"+ error.message);
+      enqueueSnackbar("Error leaving tournament: "+ error.message, { variant: 'error' });
     },
   });
 
@@ -123,18 +125,18 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
   
           if (response.status == 200){
               const result = await response.json();
-              console.log(result)
               return result;
           } else {
               throw Error("Something went wrong");
           }
       },
       onSuccess: async () => {
-        await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey);
+        await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+        enqueueSnackbar("Joined tournament", { variant: 'success' });
       },
       onError: (error: Error) => {
         console.error("Error joining tournament:", error);
-        alert("Error joining tournament: "+ error.message);
+        enqueueSnackbar("Error joining tournament: "+ error.message, { variant: 'error' });
       },
     });
 
@@ -173,7 +175,6 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
             reset(); // Reset the RHF form to default values.
         } catch (error) {
             console.error("Error during form submission via onSubmit:", error);
-            alert("Error during form submission via onSubmit: "+ (error as Error).message);
         }
     }
 

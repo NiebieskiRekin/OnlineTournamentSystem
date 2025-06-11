@@ -20,8 +20,9 @@ import { tournamentInsertSchema} from '@webdev-project/api-client';
 import {
     queryKeys,
     parseError,
-} from "../../lib/queries"; // Adjust path as necessary
+} from "../../lib/queries";
 import apiClient from '~/lib/api-client';
+import  { useSnackbar } from 'notistack';
 
 const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
@@ -36,12 +37,12 @@ const formValidationSchema = tournamentInsertSchema.pick({
 type TournamentFormData = z.infer<typeof formValidationSchema>;
 
 interface TournamentFormPageProps {
-  tournamentId?: string;
   onClose?: () => void;
 }
 
-const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, onClose }) => {
+const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
   const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<TournamentFormData>({
     resolver: zodResolver(formValidationSchema),
@@ -75,15 +76,17 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ tournamentId, o
         }
     },
     onSuccess: async () => {
-    await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
-    console.log("created")
-    onClose?.();
+      await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
+      console.log("Tournament created successfully")
+      enqueueSnackbar("Tournament created successfully", { variant: 'success' });
+      onClose?.();
+      
     },
     onError: (error: Error) => {
-    console.error("Error creating tournament:", error);
-    // Show error message to user
-    alert(`Error creating tournament: ${error.message}`);
-    },
+      console.error("Error creating tournament:", error);
+      // Show error message to user
+      enqueueSnackbar(`Error creating tournament: ${error.message}`, {variant: "error"});
+      },
     });
 
   const onSubmit: SubmitHandler<TournamentFormData> = async (formData) => {

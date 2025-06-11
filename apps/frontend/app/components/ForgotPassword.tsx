@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import * as React from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -10,6 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { authClient } from '~/lib/auth';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useSnackbar } from 'notistack';
 
 interface ForgotPasswordProps {
   open: boolean;
@@ -21,12 +20,11 @@ type Inputs = {
 };
 
 export default function ForgotPassword({ open, handleClose }: ForgotPasswordProps) {
+  const { enqueueSnackbar } = useSnackbar();
 
   const {
       register,
       handleSubmit,
-      watch,
-      formState: { errors },
     } = useForm<Inputs>()
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
       await authClient.forgetPassword({
@@ -35,8 +33,13 @@ export default function ForgotPassword({ open, handleClose }: ForgotPasswordProp
         },
         {
           onError: (ctx) => {
-            alert(ctx.error.message);
+            enqueueSnackbar(ctx.error.message, { variant: 'error' });
+            console.error(ctx.error);
           },
+          onSuccess: () => {
+            enqueueSnackbar('Password reset link sent', { variant: 'success' });
+            handleClose();
+          }
         }
       );
     }

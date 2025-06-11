@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
 import {
   Box,
@@ -19,6 +21,7 @@ import { parseError, queryKeys } from '~/lib/queries';
 import { useMutation } from '@tanstack/react-query';
 import queryClient from '~/lib/query-client';
 import apiClient from '~/lib/api-client';
+import { useSnackbar } from 'notistack';
 
 const StatusesValues = ["WON", "LOST"]
 
@@ -40,6 +43,8 @@ export default function MatchForm({ id, participant, onCancel}: { id: number, pa
       status: "NOT_PLAYED",
     },
   });
+
+  const { enqueueSnackbar } = useSnackbar();
 
     const updateMutation = useMutation(
     { mutationFn: async (payload: z.infer<typeof formSchema>) => {
@@ -65,11 +70,12 @@ export default function MatchForm({ id, participant, onCancel}: { id: number, pa
     onSuccess: async () => {
         await queryClient.invalidateQueries(queryKeys.LIST_MATCHES);
         console.log("updated match")
+        enqueueSnackbar("Match updated successfully", { variant: 'success' });
     },
     onError: (error: Error) => {
         console.error("Error updating match:", error);
         // Show error message to user
-        alert(`Error updating match: ${error.message}`);
+        enqueueSnackbar(`Error updating match: ${error.message}`, { variant: 'error' });
     },
     });
 

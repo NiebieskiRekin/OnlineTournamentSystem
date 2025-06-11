@@ -17,7 +17,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { authClient } from '~/lib/auth';
 import { LoginContainer } from '~/components/ui/login-container';
 import { useNavigate } from 'react-router';
-
+import { useSnackbar } from 'notistack';
 
 type Inputs = {
   email: string
@@ -32,6 +32,7 @@ export default function SignIn() {
   const [open, setOpen] = React.useState(false);
   const [shouldRedirectToDashboard, setShouldRedirectToDashboard] = React.useState(false);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -50,8 +51,6 @@ export default function SignIn() {
   const {
       register,
       handleSubmit,
-      watch,
-      formState: { errors },
     } = useForm<Inputs>()
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
       if (emailError || passwordError) {
@@ -62,9 +61,11 @@ export default function SignIn() {
       },
       {
         onError: (ctx) => {
-          alert(ctx.error.message);
+          enqueueSnackbar(ctx.error.message, { variant: 'error' });
+          console.error(ctx.error.message);
         },
         onSuccess: (ctx) => {
+          enqueueSnackbar("Logging in...", { variant: 'success' });
           setShouldRedirectToDashboard(true);
         }
       }

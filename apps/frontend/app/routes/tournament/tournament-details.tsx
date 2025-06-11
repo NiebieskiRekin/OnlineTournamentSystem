@@ -25,13 +25,12 @@ import {
 } from "../../lib/queries";
 import apiClient from '~/lib/api-client';
 import { authClient } from '~/lib/auth';
-import { useParams, Link as RouterLink, useNavigate, Link } from 'react-router';
+import { useParams, Link as RouterLink, Link, useNavigate } from 'react-router';
 import { sponsorLogos } from '@webdev-project/api-client';
 import {z} from "zod";
 import TournamentParticipantsTable from '~/components/ParticipantsTable';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import { useSnackbar } from 'notistack';
-
 
 interface TournamentDetailsPageProps {
   onClose?: () => void;
@@ -43,9 +42,9 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const { id } = useParams();
-  const navigate = useNavigate()
   const [parsedSponsorLogos, setParsedSponsorLogos] = useState<z.infer<typeof sponsorLogos>>([])
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError, refetch } = useQuery({
@@ -108,6 +107,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
     } 
       setOpenDeleteDialog(false);
       onClose?.();
+      enqueueSnackbar("Tournament deleted successfully", { variant: 'success' });
+      await navigate("/")
     },
     onError: (error: Error) => {
       enqueueSnackbar("Error deleting tournament: "+error.message, { variant: 'error' });

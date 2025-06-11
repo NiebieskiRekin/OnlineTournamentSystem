@@ -23,7 +23,7 @@ import {
 } from "../../lib/queries"; // Adjust path as necessary
 import apiClient from '~/lib/api-client';
 import { useParams } from 'react-router';
-import dayjs from 'dayjs';
+import { useSnackbar } from 'notistack';
 
 const formValidationSchema = tournamentInsertSchema.pick({
     name: true,
@@ -44,6 +44,7 @@ interface TournamentFormPageProps {
 const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
   const queryClient = useQueryClient();
   const { id } = useParams();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { data: tournamentData, isLoading: isLoadingTournament, error: fetchError } = useQuery({
     queryKey: queryKeys.LIST_TOURNAMENT(id ?? "").queryKey,
@@ -126,7 +127,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
     },
     onError: (error: Error) => {
       console.error("Error updating tournament:", error);
-      alert(`Error updating tournament: ${error.message}`);
+      enqueueSnackbar("Error updating tournament: "+error.message, { variant: 'error' });
     },
   });
 
@@ -195,7 +196,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
                 render={({ field, fieldState }) => (
                   <DateTimePicker
                     {...field}
-                    value={dayjs(field.value)}
+                    value={field.value}
                     label="Time"
                     onChange={(date) => field.onChange(date)}
                     slotProps={{
@@ -217,7 +218,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
                 render={({ field, fieldState }) => (
                   <DateTimePicker
                     {...field}
-                    value={dayjs(field.value)}
+                    value={field.value}
                     label="Application deadline"
                     onChange={(date) => field.onChange(date)}
                     slotProps={{

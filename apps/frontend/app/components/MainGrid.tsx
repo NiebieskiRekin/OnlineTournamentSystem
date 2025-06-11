@@ -20,7 +20,7 @@ import {type Tournament} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
 import { parseError, queryKeys } from '~/lib/queries';
 import AddIcon from '@mui/icons-material/Add';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { authClient } from '~/lib/auth';
 
 export default function MainGrid({participant} : {participant: string|null}) {
@@ -154,9 +154,11 @@ export default function MainGrid({participant} : {participant: string|null}) {
           </IconButton>
         </Tooltip>
         <Tooltip arrow title="Create a new tournament">
-          <IconButton onClick={() => navigate('/tournament/create')}>
-            <AddIcon/>
-          </IconButton>
+          <Link to="/tournament/create">
+            <IconButton onClick={()=>{}}>
+              <AddIcon/>
+            </IconButton>
+          </Link>
         </Tooltip>
       </Box>
     ),
@@ -172,11 +174,15 @@ export default function MainGrid({participant} : {participant: string|null}) {
     },
     enableRowActions: true,
     renderRowActionMenuItems: ({ row }) => [
-      <MenuItem key="details" onClick={() => navigate(`/tournament/${row.original.id}`)} disabled={isLoading}>
-        Details
+      <MenuItem key="details" disabled={isLoading}>
+          <Link to={`/tournament/${row.original.id}`}>
+            Details
+          </Link>
       </MenuItem>,
-      <MenuItem key='edit' onClick={()=>navigate(`/tournament/${row.original.id}/edit`)} disabled={isLoading || (!session) || (session.user.id !== data[row.index].organizerId)}>
-        Edit
+      <MenuItem key='edit' disabled={isLoading || (!session) || (session.user.id !== data[row.index].organizerId)}>
+        <Link to={`/tournament/${row.original.id}/edit`}>
+          Edit
+        </Link>
       </MenuItem>
     ],
   });
