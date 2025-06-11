@@ -26,7 +26,7 @@ import { useSnackbar } from 'notistack';
 const StatusesValues = ["WON", "LOST"]
 
 const formSchema = z.object({
-    score: z.number().optional(),
+    score: z.number({coerce: true}).optional(),
     status: matchParticipantStateSchema,
 })
 
@@ -130,13 +130,6 @@ export default function MatchForm({ id, participant, onCancel}: { id: number, pa
             <Controller
             name="score"
             control={control}
-            rules={{
-                required: 'Score must be a number',
-                pattern: {
-                value: /^\d+$/,
-                message: 'Please enter a valid number',
-                },
-            }}
             render={({ field }) => (
                 <TextField
                 {...field}

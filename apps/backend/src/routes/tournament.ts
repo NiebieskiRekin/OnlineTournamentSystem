@@ -61,7 +61,7 @@ export const tournamentRoute = new Hono<auth_vars>()
             })
           }
         })
-
+        console.log(result)
         return c.json({data: result, meta: {totalCount: result.length}})
       } catch (e) {
         logger.error(e)

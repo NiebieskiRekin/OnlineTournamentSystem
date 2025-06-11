@@ -406,12 +406,13 @@ export default function Bracket(){
         })
         if (!response.ok){
           const result = await response.json();
+          console.log(result)
           parseError(result)
         }
 
         if (response.status == 200){
             const result = await response.json();
-            return result;
+            return result
           } else {
             throw Error("Something went wrong");
           }
