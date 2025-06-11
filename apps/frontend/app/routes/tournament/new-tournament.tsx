@@ -44,7 +44,7 @@ const TournamentFormPage: React.FC<TournamentFormPageProps> = ({ onClose }) => {
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<TournamentFormData>({
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<TournamentFormData>({
     resolver: zodResolver(formValidationSchema),
     defaultValues: {
       name: undefined,

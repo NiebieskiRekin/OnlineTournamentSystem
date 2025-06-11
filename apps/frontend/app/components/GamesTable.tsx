@@ -16,7 +16,7 @@ import {
 } from '@tanstack/react-query';
 import apiClient from '~/lib/api-client';
 import { parseError, queryKeys } from '~/lib/queries';
-import { useNavigate } from 'react-router';
+import { NavLink } from 'react-router';
 
 type MatchData = {
   id: number;
@@ -29,7 +29,6 @@ type MatchData = {
 }
 
 export default function GamesTable({participant} : {participant: string|null}) {
-  const navigate = useNavigate()
   const [pagination, setPagination] = useState<MRT_PaginationState>({
     pageIndex: 0,
     pageSize: 20,
@@ -124,11 +123,6 @@ export default function GamesTable({participant} : {participant: string|null}) {
             <RefreshIcon />
           </IconButton>
         </Tooltip>
-        {/* <Tooltip arrow title="Create a new tournament">
-          <IconButton onClick={() => navigate('/tournament/create')}>
-            <AddIcon/>
-          </IconButton>
-        </Tooltip> */}
       </Box>
     ),
     rowCount: meta?.totalCount ?? 0,
@@ -140,9 +134,11 @@ export default function GamesTable({participant} : {participant: string|null}) {
     },
     enableRowActions: true,
     renderRowActionMenuItems: ({ row }) => [
-      <MenuItem key="details" onClick={() => navigate(`/tournament/${row.original.tournamentId}`)} disabled={isLoading}>
-        Tournament Details
-      </MenuItem>,
+      <NavLink to={`/tournament/${row.original.tournamentId}`}>
+        <MenuItem key="details" disabled={isLoading}>
+          Tournament Details
+        </MenuItem>,
+      </NavLink>
     ],
   });
 

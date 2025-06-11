@@ -20,14 +20,13 @@ import {type Tournament} from "@webdev-project/api-client";
 import apiClient from '~/lib/api-client';
 import { parseError, queryKeys } from '~/lib/queries';
 import AddIcon from '@mui/icons-material/Add';
-import { Link, useNavigate } from 'react-router';
+import { NavLink } from 'react-router';
 import { authClient } from '~/lib/auth';
 
 export default function MainGrid({participant} : {participant: string|null}) {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([],);
   const [globalFilter, setGlobalFilter] = useState('');
   const [sorting, setSorting] = useState<MRT_SortingState>([]);
-  const navigate = useNavigate()
   const [pagination, setPagination] = useState<MRT_PaginationState>({
     pageIndex: 0,
     pageSize: 20,
@@ -154,11 +153,11 @@ export default function MainGrid({participant} : {participant: string|null}) {
           </IconButton>
         </Tooltip>
         <Tooltip arrow title="Create a new tournament">
-          <Link to="/tournament/create">
+          <NavLink to="/tournament/create">
             <IconButton onClick={()=>{}}>
               <AddIcon/>
             </IconButton>
-          </Link>
+          </NavLink>
         </Tooltip>
       </Box>
     ),
@@ -175,14 +174,14 @@ export default function MainGrid({participant} : {participant: string|null}) {
     enableRowActions: true,
     renderRowActionMenuItems: ({ row }) => [
       <MenuItem key="details" disabled={isLoading}>
-          <Link to={`/tournament/${row.original.id}`}>
+          <NavLink to={`/tournament/${row.original.id}`}>
             Details
-          </Link>
+          </NavLink>
       </MenuItem>,
       <MenuItem key='edit' disabled={isLoading || (!session) || (session.user.id !== data[row.index].organizerId)}>
-        <Link to={`/tournament/${row.original.id}/edit`}>
+        <NavLink to={`/tournament/${row.original.id}/edit`}>
           Edit
-        </Link>
+        </NavLink>
       </MenuItem>
     ],
   });

@@ -242,7 +242,7 @@ export const tournamentRoute = new Hono<auth_vars>()
 
         const result = await db
           .insert(tournament)
-          .values({...req, organizer: user_session.id, time: req.time.toDateString(), applicationDeadline: req.applicationDeadline?.toDateString()})
+          .values({...req, organizer: user_session.id, time: req.time.toISOString(), applicationDeadline: req.applicationDeadline?.toISOString()})
           .returning()
           .then((res) => res[0]);
 

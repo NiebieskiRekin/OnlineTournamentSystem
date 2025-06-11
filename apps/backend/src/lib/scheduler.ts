@@ -268,7 +268,7 @@ export async function getTournamentsForGrouping(): Promise<number[]> {
   const tournaments = await db.select({
     tournament: tournament.id
   }).from(tournament)
-  .where(and(eq(tournament.groupsCreated,false),lt(tournament.applicationDeadline,new Date().toDateString()),gt(tournament.participants,1)))
+  .where(and(eq(tournament.groupsCreated,false),lt(tournament.applicationDeadline,new Date().toISOString()),gt(tournament.participants,1)))
   .orderBy(tournament.id);
 
   return tournaments.map(t => t.tournament);
