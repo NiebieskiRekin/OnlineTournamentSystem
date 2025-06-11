@@ -46,9 +46,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: [
-      queryKeys.LIST_PARTICIPANTS(tournamentId.toString())
-    ],
+    queryKey: queryKeys.LIST_PARTICIPANTS(tournamentId.toString()).queryKey,
     queryFn: async () => {
       const response = await apiClient.api.tournament[':id{[0-9]+}'].participant.$get({
         param: {
@@ -96,6 +94,7 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+      await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENT(tournamentId.toString()));
       enqueueSnackbar("Tournament left successfully", { variant: 'success' });
     },
     onError: (error: Error) => {
@@ -132,6 +131,8 @@ const TournamentParticipantsTable: React.FC<TournamentParticipantsTableProps> = 
       },
       onSuccess: async () => {
         await queryClient.invalidateQueries(queryKeys.LIST_PARTICIPANTS(tournamentId.toString()));
+        // Also invalidate the main tournament query to update participant counts if displayed elsewhere
+        await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENT(tournamentId.toString()));
         enqueueSnackbar("Joined tournament", { variant: 'success' });
       },
       onError: (error: Error) => {

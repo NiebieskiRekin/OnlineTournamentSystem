@@ -412,6 +412,10 @@ export const tournamentRoute = new Hono<auth_vars>()
           return c.json({error: "Cannot apply to this tournament"}, 400);
         }
 
+        const isInTournament = await db.select({id: participant.id}).from(participant).where(and(eq(participant.tournament,id),eq(participant.user,session.userId))).then((res) => res[0]);
+        if (isInTournament !== undefined){
+          return c.json({error: "Already applied"}, 400);
+        }
         const res = (await db.transaction(async (tx) =>{
           const participantQuery = tx.insert(participant).values({...req, user: user_session.id, tournament: id}).returning({score: participant.score, licenseNumber: participant.licenseNumber}).then((res) => res[0]);
           const tournamentQuery = tx.update(tournament).set({participants: sql`${tournament.participants}+1`}).where(eq(tournament.id,id)).returning({participants: tournament.participants}).then((res)=>res[0])
@@ -423,7 +427,8 @@ export const tournamentRoute = new Hono<auth_vars>()
           licenseNumber: res[0].licenseNumber,
           participants: res[1].participants
         }, 200);
-      } catch {
+      } catch(e) {
+        logger.error(e)
         return c.json({ error: "Server error" }, 500);
       }
     }

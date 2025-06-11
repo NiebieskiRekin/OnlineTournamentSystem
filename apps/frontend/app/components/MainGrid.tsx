@@ -42,7 +42,7 @@ export default function MainGrid({participant} : {participant: string|null}) {
     refetch,
   } = useQuery({
     queryKey: [
-      participant ? queryKeys.LIST_TOURNAMENTS_FOR_USER(participant) : queryKeys.LIST_TOURNAMENTS,
+      participant ? queryKeys.LIST_TOURNAMENTS_FOR_USER(participant).queryKey : queryKeys.LIST_TOURNAMENTS.queryKey,
       {
         columnFilters,
         globalFilter,

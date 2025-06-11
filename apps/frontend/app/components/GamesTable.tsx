@@ -42,12 +42,13 @@ export default function GamesTable({participant} : {participant: string|null}) {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: [
-      participant ? queryKeys.LIST_MATCH(participant) : queryKeys.LIST_MATCHES,
+    queryKey:
+      ((participant ? queryKeys.LIST_MATCH(participant).queryKey : queryKeys.LIST_MATCHES.queryKey) as any[])
+    .concat([
       {
-        pagination,
-      },
-    ],
+        pagination
+      }
+    ]),
     queryFn: async () => {
       const response = await apiClient.api.match.$get({
         query: {

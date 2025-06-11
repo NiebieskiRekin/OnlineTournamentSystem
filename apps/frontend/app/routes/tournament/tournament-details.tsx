@@ -101,10 +101,10 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
         }
     },
     onSuccess: async () => {
-    await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
-    if (id) {
+      await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENTS);
+      if (id) {
         queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(id));
-    } 
+      } 
       setOpenDeleteDialog(false);
       onClose?.();
       enqueueSnackbar("Tournament deleted successfully", { variant: 'success' });
@@ -146,7 +146,8 @@ const TournamentDetailsPage: React.FC<TournamentDetailsPageProps> = ({ onClose }
     onSuccess: async (result) => {
         if (id) {
           await queryClient.invalidateQueries(queryKeys.LIST_TOURNAMENT(id));
-          queryClient.removeQueries(queryKeys.LIST_TOURNAMENT(id));
+          // Also invalidate brackets query as they would have been generated/updated
+          await queryClient.invalidateQueries(queryKeys.LIST_BRACKETS_FOR_TOURNAMENT(id));
         }
         enqueueSnackbar(result.message, { variant: 'success' });
         console.log(result.message)
